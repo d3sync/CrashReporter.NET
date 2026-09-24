@@ -11,9 +11,8 @@
   </PropertyGroup>
 
   <PropertyGroup>
+    <!-- Default version for local builds; CI overrides it from the v* release tag (see .github/workflows/publish.yml). -->
     <Version>2.0.0</Version>
-    <AssemblyVersion>2.0.0.0</AssemblyVersion>
-    <FileVersion>2.0.0.0</FileVersion>
     <Company>RBSoft</Company>
     <Product>CrashReporter.NET</Product>
     <AssemblyTitle>CrashReporter.NET</AssemblyTitle>
@@ -27,12 +26,17 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <PackageId>CrashReporter.NET.Official</PackageId>
+    <PackageId>d3sync.CrashReporter.NET</PackageId>
     <Title>CrashReporter.NET</Title>
-    <Authors>RBSoft</Authors>
+    <Authors>RBSoft, d3sync</Authors>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageProjectUrl>https://github.com/ravibpatel/CrashReporter.NET</PackageProjectUrl>
-    <PackageReleaseNotes>https://github.com/ravibpatel/CrashReporter.NET/releases</PackageReleaseNotes>
+    <PackageProjectUrl>https://github.com/d3sync/CrashReporter.NET</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/d3sync/CrashReporter.NET</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageReleaseNotes>https://github.com/d3sync/CrashReporter.NET/releases</PackageReleaseNotes>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <Description>Send crash reports of your desktop application developed using .NET 10 or .NET Framework 4.8 directly to your mail's inbox with full exception report, stack trace and screenshot.</Description>
     <PackageTags>exception reporter crash inbox email C# VB.NET WinForms WPF</PackageTags>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
@@ -42,6 +46,10 @@
   <PropertyGroup Condition="'$(TargetFramework)' == 'net48'">
     <GenerateResourceUsePreserializedResources>true</GenerateResourceUsePreserializedResources>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\README.md" Pack="true" PackagePath="\" Visible="false" />
+  </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net48'">
     <PackageReference Include="System.Resources.Extensions" Version="10.0.0" />
