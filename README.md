@@ -1,6 +1,6 @@
 # CrashReporter.NET
 
-[![AppVeyor branch](https://img.shields.io/appveyor/ci/gruntjs/grunt/master.svg)](https://ci.appveyor.com/project/ravibpatel/crashreporter-net)
+[![Build and publish](https://github.com/d3sync/CrashReporter.NET/actions/workflows/publish.yml/badge.svg)](https://github.com/d3sync/CrashReporter.NET/actions/workflows/publish.yml)
 
 Send crash reports of your desktop application developed using .NET 10 or .NET Framework directly to your mail's inbox with full exception report, stack trace and screenshot.
 
@@ -20,10 +20,10 @@ Version 2.0 is a breaking release:
 * Failed reports saved by `SaveFailedReport()` are now stored as `failed-report-*.xml` instead of `BinaryFormatter` based `.bin` files, because `BinaryFormatter` is no longer available on .NET 9+. Old `.bin` files are not retried.
 * Translations are now shipped as standard satellite assemblies (`de\CrashReporter.NET.resources.dll`, etc.) instead of being embedded in `CrashReporter.NET.dll`. Deploy the culture folders along with your application.
 
-## The nuget package  [![NuGet](https://img.shields.io/nuget/v/CrashReporter.NET.Official.svg)](https://www.nuget.org/packages/CrashReporter.NET.Official/) [![NuGet](https://img.shields.io/nuget/dt/CrashReporter.NET.Official.svg)](https://www.nuget.org/packages/CrashReporter.NET.Official/)
+## The nuget package  [![NuGet](https://img.shields.io/nuget/v/d3sync.CrashReporter.NET.svg)](https://www.nuget.org/packages/d3sync.CrashReporter.NET/) [![NuGet](https://img.shields.io/nuget/dt/d3sync.CrashReporter.NET.svg)](https://www.nuget.org/packages/d3sync.CrashReporter.NET/)
 
 ````powershell
-PM> Install-Package CrashReporter.NET.Official
+PM> Install-Package d3sync.CrashReporter.NET
 ````
 
 ## How it works
