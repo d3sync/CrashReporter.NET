@@ -1,6 +1,7 @@
-﻿using System;
+using System;
 using System.ComponentModel;
 using System.Net;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using CrashReporterDotNET.com.drdump;
 
@@ -14,16 +15,11 @@ namespace CrashReporterDotNET.DrDump
 
         private SendRequestState _sendRequestState;
 
-        private readonly HttpsCrashReporterReportUploader _uploader;
+        private readonly DrDumpSoapClient _uploader;
 
         public DrDumpService(IWebProxy webProxy = null)
         {
-            _uploader = new HttpsCrashReporterReportUploader();
-
-            if (webProxy != null)
-            {
-                _uploader.Proxy = webProxy;
-            }
+            _uploader = new DrDumpSoapClient(webProxy);
 
             var configOverride =
                 Microsoft.Win32.Registry.GetValue(@"HKEY_LOCAL_MACHINE\SOFTWARE\Idol Software\DumpUploader",
@@ -53,9 +49,12 @@ namespace CrashReporterDotNET.DrDump
                 }
             };
 
-            _uploader.SendAnonymousReportCompleted += OnSendAnonymousReportCompleted;
-            _uploader.SendAnonymousReportAsync(SendRequestState.GetClientLib(), _sendRequestState.GetApplication(),
-                _sendRequestState.GetExceptionDescription(true), _sendRequestState);
+            var state = _sendRequestState;
+            var clientLib = SendRequestState.GetClientLib();
+            var application = state.GetApplication();
+            RunAsync(() => _uploader.SendAnonymousReportAsync(clientLib, application,
+                    state.GetExceptionDescription(true)),
+                result => OnSendAnonymousReportCompleted(state, result));
         }
 
         public string SendReportSilently(Exception exception, string toEmail, Guid? applicationId, string developerMessage, string from,
@@ -78,15 +77,19 @@ namespace CrashReporterDotNET.DrDump
                 }
             };
 
-            var response = _uploader.SendAnonymousReport(SendRequestState.GetClientLib(), _sendRequestState.GetApplication(),
-                _sendRequestState.GetExceptionDescription(true));
+            var clientLib = SendRequestState.GetClientLib();
+            var application = _sendRequestState.GetApplication();
+            var exceptionDescription = _sendRequestState.GetExceptionDescription(true);
+            var response = RunSynchronously(() =>
+                _uploader.SendAnonymousReportAsync(clientLib, application, exceptionDescription));
             if (response is ErrorResponse errorResponse)
                 throw new Exception(errorResponse.Error);
 
             if (response is NeedReportResponse)
             {
-                var additionalDataResponse = _uploader.SendAdditionalData(response.Context,
-                    _sendRequestState.GetDetailedExceptionDescription());
+                var detailedExceptionDescription = _sendRequestState.GetDetailedExceptionDescription();
+                var additionalDataResponse = RunSynchronously(() =>
+                    _uploader.SendAdditionalDataAsync(response.Context, detailedExceptionDescription));
                 if (additionalDataResponse is ErrorResponse errorAdditionalDataResponse)
                     throw new Exception(errorAdditionalDataResponse.Error);
                 return additionalDataResponse.UrlToProblem;
@@ -134,9 +137,9 @@ namespace CrashReporterDotNET.DrDump
 
                     if (response is NeedReportResponse)
                     {
-                        _uploader.SendAdditionalDataCompleted += OnSendAdditionalDataCompleted;
-                        _uploader.SendAdditionalDataAsync(response.Context,
-                            sendRequestState.GetDetailedExceptionDescription(), sendRequestState);
+                        var detailedExceptionDescription = sendRequestState.GetDetailedExceptionDescription();
+                        RunAsync(() => _uploader.SendAdditionalDataAsync(response.Context, detailedExceptionDescription),
+                            OnSendAdditionalDataCompleted);
                         return;
                     }
 
@@ -161,15 +164,13 @@ namespace CrashReporterDotNET.DrDump
             }
         }
 
-        private void OnSendAnonymousReportCompleted(object sender, SendAnonymousReportCompletedEventArgs e)
+        private void OnSendAnonymousReportCompleted(SendRequestState state, RequestResult result)
         {
-            var state = (SendRequestState) e.UserState;
-
             bool needToSend;
 
             lock (state)
             {
-                state.SendAnonymousReportResult = e;
+                state.SendAnonymousReportResult = result;
 
                 needToSend = state.PrivateData != null;
             }
@@ -178,16 +179,17 @@ namespace CrashReporterDotNET.DrDump
                 SendAdditionalDataAsync(null, state);
         }
 
-        private void OnSendAdditionalDataCompleted(object sender, SendAdditionalDataCompletedEventArgs e)
+        private void OnSendAdditionalDataCompleted(RequestResult result)
         {
             try
             {
-                if (e.Error != null || e.Cancelled)
+                if (result.Error != null || result.Cancelled)
                 {
-                    SendRequestCompleted?.Invoke(this, new SendRequestCompletedEventArgs(null, e.Error, e.Cancelled));
+                    SendRequestCompleted?.Invoke(this, new SendRequestCompletedEventArgs(null, result.Error, result.Cancelled));
+                    return;
                 }
 
-                Response response = e.Result;
+                Response response = result.Result;
                 if (response is ErrorResponse errorResponse)
                     throw new Exception(errorResponse.Error);
 
@@ -197,6 +199,50 @@ namespace CrashReporterDotNET.DrDump
             {
                 SendRequestCompleted?.Invoke(this, new SendRequestCompletedEventArgs(null, ex, false));
             }
+        }
+
+        /// <summary>
+        /// Starts the request on the thread pool and raises <paramref name="completed"/> on the synchronization context
+        /// of the caller (the UI thread for WinForms/WPF), matching the behaviour of the old SoapHttpClientProtocol proxy.
+        /// </summary>
+        private static void RunAsync(Func<Task<Response>> request, Action<RequestResult> completed)
+        {
+            var asyncOperation = AsyncOperationManager.CreateOperation(null);
+            Task.Run(request).ContinueWith(task =>
+            {
+                RequestResult result;
+                if (task.IsFaulted)
+                    result = new RequestResult(null, task.Exception?.GetBaseException(), false);
+                else if (task.IsCanceled)
+                    result = new RequestResult(null,
+                        new TimeoutException("The request to the Doctor Dump service timed out."), false);
+                else
+                    result = new RequestResult(task.Result, null, false);
+
+                asyncOperation.PostOperationCompleted(_ => completed(result), null);
+            }, TaskScheduler.Default);
+        }
+
+        private static Response RunSynchronously(Func<Task<Response>> request)
+        {
+            // Task.Run avoids deadlocks when called from a thread with a synchronization context (e.g. the UI thread).
+            return Task.Run(request).GetAwaiter().GetResult();
+        }
+
+        internal sealed class RequestResult
+        {
+            public RequestResult(Response result, Exception error, bool cancelled)
+            {
+                Result = result;
+                Error = error;
+                Cancelled = cancelled;
+            }
+
+            public Response Result { get; }
+
+            public Exception Error { get; }
+
+            public bool Cancelled { get; }
         }
 
         public class SendRequestCompletedEventArgs : AsyncCompletedEventArgs

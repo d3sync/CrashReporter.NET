@@ -1,18 +1,19 @@
-﻿
+
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.29215.179
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CrashReporter.NET", "CrashReporter.NET\CrashReporter.NET.csproj", "{67912BDA-1572-46B0-8623-5872D9DADBC8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CrashReporter.NET", "CrashReporter.NET\CrashReporter.NET.csproj", "{67912BDA-1572-46B0-8623-5872D9DADBC8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CrashReporterTest", "CrashReporterTest\CrashReporterTest.csproj", "{895AE503-6920-4BFF-9D47-3A91F90E8606}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CrashReporterTest", "CrashReporterTest\CrashReporterTest.csproj", "{895AE503-6920-4BFF-9D47-3A91F90E8606}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CrashReporterWPFTest", "CrashReporterWPFTest\CrashReporterWPFTest.csproj", "{0DC93E03-047D-4664-BE24-2215BF98C8A1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CrashReporterWPFTest", "CrashReporterWPFTest\CrashReporterWPFTest.csproj", "{0DC93E03-047D-4664-BE24-2215BF98C8A1}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{475926B8-4252-47B1-BD51-FD60F5445535}"
 	ProjectSection(SolutionItems) = preProject
 		appveyor.yml = appveyor.yml
 		LICENSE = LICENSE
+		nuget.config = nuget.config
 		README.md = README.md
 	EndProjectSection
 EndProject
@@ -22,8 +23,8 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{67912BDA-1572-46B0-8623-5872D9DADBC8}.Debug|Any CPU.ActiveCfg = Debug-NET40|Any CPU
-		{67912BDA-1572-46B0-8623-5872D9DADBC8}.Debug|Any CPU.Build.0 = Debug-NET40|Any CPU
+		{67912BDA-1572-46B0-8623-5872D9DADBC8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{67912BDA-1572-46B0-8623-5872D9DADBC8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{67912BDA-1572-46B0-8623-5872D9DADBC8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{67912BDA-1572-46B0-8623-5872D9DADBC8}.Release|Any CPU.Build.0 = Release|Any CPU
 		{895AE503-6920-4BFF-9D47-3A91F90E8606}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -40,9 +41,5 @@ Global
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F4BDF3BA-3ADC-49E3-8B21-7179CB6D5250}
-	EndGlobalSection
-	GlobalSection(SubversionScc) = preSolution
-		Svn-Managed = True
-		Manager = AnkhSVN - Subversion Support for Visual Studio
 	EndGlobalSection
 EndGlobal
