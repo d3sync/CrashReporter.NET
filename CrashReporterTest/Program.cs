@@ -28,11 +28,11 @@ namespace CrashReporterTest
                 ShowScreenshotTab = true,
                 IncludeScreenshot = false,
                 #region Optional Configuration
-                WebProxy = new WebProxy("Web proxy address, if needed"),
+                // WebProxy = new WebProxy("Web proxy address, if needed"),
                 AnalyzeWithDoctorDump = true,
                 DoctorDumpSettings = new DoctorDumpSettings
                 {
-                    ApplicationID = new Guid("Application ID you received from DrDump.com"),
+                    // ApplicationID = new Guid("Application ID you received from DrDump.com"),
                     OpenReportInBrowser = true
                 }
                 #endregion

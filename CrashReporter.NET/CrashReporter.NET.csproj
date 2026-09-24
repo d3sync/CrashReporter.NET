@@ -1,320 +1,53 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>8.0.30703</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{67912BDA-1572-46B0-8623-5872D9DADBC8}</ProjectGuid>
+    <TargetFrameworks>net10.0-windows;net48</TargetFrameworks>
     <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <UseWindowsForms>true</UseWindowsForms>
+    <LangVersion>latest</LangVersion>
     <RootNamespace>CrashReporterDotNET</RootNamespace>
     <AssemblyName>CrashReporter.NET</AssemblyName>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <TargetFrameworkProfile />
-    <NuGetPackageImportStamp>
-    </NuGetPackageImportStamp>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
-  <PropertyGroup Condition="$(Configuration.Contains('Debug'))">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
-  </PropertyGroup>
-  <PropertyGroup Condition="$(Configuration.Contains('Release'))">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
-    <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
-    <OutputPath>bin\Debug\net20</OutputPath>
-    <DocumentationFile>bin\Debug\net20\CrashReporter.NET.XML</DocumentationFile>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
-    <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
-    <OutputPath>build\lib\net20</OutputPath>
-    <DocumentationFile>build\lib\net20\CrashReporter.NET.XML</DocumentationFile>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)' == 'Debug-NET35' ">
-    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
-    <OutputPath>bin\Debug\net35</OutputPath>
-    <DocumentationFile>bin\Debug\net35\CrashReporter.NET.XML</DocumentationFile>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)' == 'Release-NET35' ">
-    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
-    <OutputPath>build\lib\net35</OutputPath>
-    <DocumentationFile>build\lib\net35\CrashReporter.NET.XML</DocumentationFile>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)' == 'Debug-NET40' ">
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
-    <OutputPath>bin\Debug\net40</OutputPath>
-    <DocumentationFile>bin\Debug\net40\CrashReporter.NET.XML</DocumentationFile>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)' == 'Release-NET40' ">
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
-    <OutputPath>build\lib\net40</OutputPath>
-    <DocumentationFile>build\lib\net40\CrashReporter.NET.XML</DocumentationFile>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)' == 'Debug-NET452' ">
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
-    <OutputPath>bin\Debug\net452</OutputPath>
-    <DocumentationFile>bin\Debug\net452\CrashReporter.NET.XML</DocumentationFile>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)' == 'Release-NET452' ">
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
-    <OutputPath>build\lib\net452</OutputPath>
-    <DocumentationFile>build\lib\net452\CrashReporter.NET.XML</DocumentationFile>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)' == 'Debug-NET462' ">
-    <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
-    <OutputPath>bin\Debug\net462</OutputPath>
-    <DocumentationFile>bin\Debug\net462\CrashReporter.NET.XML</DocumentationFile>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)' == 'Release-NET462' ">
-    <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
-    <OutputPath>build\lib\net462</OutputPath>
-    <DocumentationFile>build\lib\net462\CrashReporter.NET.XML</DocumentationFile>
-  </PropertyGroup>
+
   <PropertyGroup>
+    <Version>2.0.0</Version>
+    <AssemblyVersion>2.0.0.0</AssemblyVersion>
+    <FileVersion>2.0.0.0</FileVersion>
+    <Company>RBSoft</Company>
+    <Product>CrashReporter.NET</Product>
+    <AssemblyTitle>CrashReporter.NET</AssemblyTitle>
+    <Copyright>Copyright © 2012-2026 RBSoft</Copyright>
+    <NeutralLanguage>en</NeutralLanguage>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="Exists('CrashReporter.NET.snk')">
     <SignAssembly>true</SignAssembly>
-  </PropertyGroup>
-  <PropertyGroup>
     <AssemblyOriginatorKeyFile>CrashReporter.NET.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
-  <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.Data" />
+
+  <PropertyGroup>
+    <PackageId>CrashReporter.NET.Official</PackageId>
+    <Title>CrashReporter.NET</Title>
+    <Authors>RBSoft</Authors>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/ravibpatel/CrashReporter.NET</PackageProjectUrl>
+    <PackageReleaseNotes>https://github.com/ravibpatel/CrashReporter.NET/releases</PackageReleaseNotes>
+    <Description>Send crash reports of your desktop application developed using .NET 10 or .NET Framework 4.8 directly to your mail's inbox with full exception report, stack trace and screenshot.</Description>
+    <PackageTags>exception reporter crash inbox email C# VB.NET WinForms WPF</PackageTags>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+  </PropertyGroup>
+
+  <!-- WinForms .resx files contain non-string resources (images), which .NET Framework needs preserialized when built with the .NET SDK. -->
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net48'">
+    <GenerateResourceUsePreserializedResources>true</GenerateResourceUsePreserializedResources>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net48'">
+    <PackageReference Include="System.Resources.Extensions" Version="10.0.0" />
     <Reference Include="System.Deployment" />
-    <Reference Include="System.Drawing" />
-    <Reference Include="System.EnterpriseServices" />
-    <Reference Include="System.Web" />
-    <Reference Include="System.Web.Services" />
-    <Reference Include="System.Windows.Forms" />
-    <Reference Include="System.Xml" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Runtime.Serialization" />
   </ItemGroup>
-  <ItemGroup>
-    <Compile Include="CaptureScreenshot.cs" />
-    <Compile Include="CrashReport.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="CrashReport.Designer.cs">
-      <DependentUpon>CrashReport.cs</DependentUpon>
-    </Compile>
-    <Compile Include="DrDump\AnonymousData.cs" />
-    <Compile Include="DrDump\DrDumpService.cs" />
-    <Compile Include="DrDump\PrivateData.cs" />
-    <Compile Include="DrDump\SendRequestState.cs" />
-    <Compile Include="HelperMethods.cs" />
-    <Compile Include="ProgressDialog.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="ProgressDialog.Designer.cs">
-      <DependentUpon>ProgressDialog.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Properties\Resources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Resources.resx</DependentUpon>
-    </Compile>
-    <Compile Include="Properties\Settings.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTimeSharedInput>True</DesignTimeSharedInput>
-      <DependentUpon>Settings.settings</DependentUpon>
-    </Compile>
-    <Compile Include="ReportCrash.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Screenshot.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Screenshot.Designer.cs">
-      <DependentUpon>Screenshot.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Web References\com.drdump\Reference.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Reference.map</DependentUpon>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="CrashReport.da.resx">
-      <DependentUpon>CrashReport.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="CrashReport.de.resx">
-      <DependentUpon>CrashReport.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="CrashReport.es.resx">
-      <DependentUpon>CrashReport.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="CrashReport.fr.resx">
-      <DependentUpon>CrashReport.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="CrashReport.it.resx">
-      <DependentUpon>CrashReport.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="CrashReport.nl.resx">
-      <DependentUpon>CrashReport.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="CrashReport.pl.resx">
-      <DependentUpon>CrashReport.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="CrashReport.resx">
-      <DependentUpon>CrashReport.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="CrashReport.ru.resx">
-      <DependentUpon>CrashReport.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="CrashReport.sv.resx">
-      <DependentUpon>CrashReport.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="CrashReport.tr.resx">
-      <DependentUpon>CrashReport.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="CrashReport.ko.resx">
-      <DependentUpon>CrashReport.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="CrashReport.zh-CN.resx">
-      <DependentUpon>CrashReport.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ProgressDialog.da.resx">
-      <DependentUpon>ProgressDialog.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ProgressDialog.de.resx">
-      <DependentUpon>ProgressDialog.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ProgressDialog.es.resx">
-      <DependentUpon>ProgressDialog.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ProgressDialog.fr.resx">
-      <DependentUpon>ProgressDialog.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ProgressDialog.it.resx">
-      <DependentUpon>ProgressDialog.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ProgressDialog.nl.resx">
-      <DependentUpon>ProgressDialog.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ProgressDialog.pl.resx">
-      <DependentUpon>ProgressDialog.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ProgressDialog.resx">
-      <DependentUpon>ProgressDialog.cs</DependentUpon>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ProgressDialog.ru.resx">
-      <DependentUpon>ProgressDialog.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ProgressDialog.sv.resx">
-      <DependentUpon>ProgressDialog.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ProgressDialog.tr.resx">
-      <DependentUpon>ProgressDialog.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ProgressDialog.ko.resx">
-      <DependentUpon>ProgressDialog.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ProgressDialog.zh-CN.resx">
-      <DependentUpon>ProgressDialog.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Properties\Resources.zh-CN.resx" />
-    <EmbeddedResource Include="Properties\Resources.da.resx" />
-    <EmbeddedResource Include="Properties\Resources.de.resx" />
-    <EmbeddedResource Include="Properties\Resources.es.resx" />
-    <EmbeddedResource Include="Properties\Resources.fr.resx" />
-    <EmbeddedResource Include="Properties\Resources.it.resx" />
-    <EmbeddedResource Include="Properties\Resources.ko.resx" />
-    <EmbeddedResource Include="Properties\Resources.nl.resx" />
-    <EmbeddedResource Include="Properties\Resources.pl.resx" />
-    <EmbeddedResource Include="Properties\Resources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Properties\Resources.ru.resx" />
-    <EmbeddedResource Include="Properties\Resources.sv.resx" />
-    <EmbeddedResource Include="Properties\Resources.tr.resx" />
-    <EmbeddedResource Include="Screenshot.resx">
-      <DependentUpon>Screenshot.cs</DependentUpon>
-    </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="app.config" />
-    <None Include="build\CrashReporter.NET.Official.nuspec">
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="CrashReporter.NET.snk" />
-    <None Include="packages.config" />
-    <None Include="Properties\Settings.settings">
-      <Generator>SettingsSingleFileGenerator</Generator>
-      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
-    </None>
-    <None Include="Resources\email_go.png" />
-    <None Include="Web References\com.drdump\CrashReporterReportUploader.wsdl" />
-    <None Include="Web References\com.drdump\CrashReporterReportUploader.xsd">
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="Web References\com.drdump\CrashReporterReportUploader0.xsd">
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="Web References\com.drdump\Reference.map">
-      <Generator>MSDiscoCodeGenerator</Generator>
-      <LastGenOutput>Reference.cs</LastGenOutput>
-    </None>
-    <None Include="Web References\com.drdump\Response.datasource">
-      <DependentUpon>Reference.map</DependentUpon>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\stop.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\save_as.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\warning_64.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\ajax-loader.gif" />
-  </ItemGroup>
-  <ItemGroup>
-    <WebReferences Include="Web References\" />
-  </ItemGroup>
-  <ItemGroup>
-    <WebReferenceUrl Include="http://drdump.com/Service/CrashReporterReportUploader.svc">
-      <UrlBehavior>Static</UrlBehavior>
-      <RelPath>Web References\com.drdump\</RelPath>
-      <UpdateFromURL>http://drdump.com/Service/CrashReporterReportUploader.svc</UpdateFromURL>
-      <ServiceLocationURL>
-      </ServiceLocationURL>
-      <CachedDynamicPropName>
-      </CachedDynamicPropName>
-      <CachedAppSettingsObjectName>Settings</CachedAppSettingsObjectName>
-      <CachedSettingsPropName>CrashReporter_NET_com_drdump_CrashReporterReportUploader</CachedSettingsPropName>
-    </WebReferenceUrl>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Web References\com.drdump\CrashReporterReportUploader.disco" />
-  </ItemGroup>
-  <ItemGroup />
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <Import Project="..\packages\Resource.Embedder.1.2.5\build\Resource.Embedder.targets" Condition="Exists('..\packages\Resource.Embedder.1.2.5\build\Resource.Embedder.targets') And '$(TargetFrameworkVersion)' != 'v2.0' And '$(TargetFrameworkVersion)' != 'v3.0' And '$(TargetFrameworkVersion)' != 'v3.5'" />
-  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
-    <PropertyGroup>
-      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
-    </PropertyGroup>
-    <Error Condition="!Exists('..\packages\Resource.Embedder.1.2.5\build\Resource.Embedder.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Resource.Embedder.1.2.5\build\Resource.Embedder.targets'))" />
-  </Target>
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
+
 </Project>

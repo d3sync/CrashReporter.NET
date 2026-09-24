@@ -1,6 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
+#if NETFRAMEWORK
 using System.Deployment.Application;
+#endif
 using System.Diagnostics;
 using System.Drawing.Imaging;
 using System.IO;
@@ -8,9 +10,10 @@ using System.Net;
 using System.Net.Mail;
 using System.Net.Sockets;
 using System.Reflection;
+using System.Runtime.Serialization;
 using System.Threading;
-using System.Web;
 using System.Windows.Forms;
+using System.Xml;
 using CrashReporterDotNET.DrDump;
 using Application = System.Windows.Forms.Application;
 
@@ -132,15 +135,12 @@ namespace CrashReporterDotNET
         /// </summary>
         public void SaveFailedReport()
         {
-            var serializer = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
-            var fileName = $"failed-report-{DateTime.Now.ToString("yyyy-MM-ddTHH_mm_ss")}.bin";
+            var fileName = $"failed-report-{DateTime.Now.ToString("yyyy-MM-ddTHH_mm_ss")}.xml";
             var fileInfo = new FileInfo(Path.Combine(tempDirectory.FullName, fileName));
             if (!tempDirectory.Exists)
                 tempDirectory.Create();
-            using (var fileStream = File.Create(fileInfo.FullName))
-            {
-                serializer.Serialize(fileStream, new LoadFailedReportResult() { Exception = Exception, ScreenShot = ScreenShotBinary });
-            }
+            new FailedReport { Exception = ExceptionData.FromException(Exception), ScreenShot = ScreenShotBinary }
+                .Save(fileInfo.FullName);
         }
         /// <summary>
         /// Retries any previously failed report silently. If the first fails, it will stop.
@@ -160,15 +160,12 @@ namespace CrashReporterDotNET
             if (!tempDirectory.Exists) return false;
 
             List<LoadFailedReportResult> loadedFailedReports = new List<LoadFailedReportResult>();
-            foreach (var fileInfo in tempDirectory.GetFiles())
+            foreach (var fileInfo in tempDirectory.GetFiles("failed-report-*.xml"))
             {
-                if (fileInfo.Name.StartsWith("failed-report"))
+                var loadedFailedReport = SelectFailedReport(fileInfo);
+                if (loadedFailedReport.Exception != null)
                 {
-                    var loadedFailedReport = SelectFailedReport(fileInfo);
-                    if (loadedFailedReport.Exception != null)
-                    {
-                        loadedFailedReports.Add(loadedFailedReport);
-                    }
+                    loadedFailedReports.Add(loadedFailedReport);
                 }
             }
 
@@ -178,7 +175,9 @@ namespace CrashReporterDotNET
             {
                 try
                 {
-                    File.WriteAllBytes(Path.Combine(tempDirectory.FullName, "screenshot.png"), ScreenShotBinary = failedReport.ScreenShot);
+                    ScreenShotBinary = failedReport.ScreenShot;
+                    if (ScreenShotBinary != null)
+                        File.WriteAllBytes(Path.Combine(tempDirectory.FullName, "screenshot.png"), ScreenShotBinary);
                     SendSilently(failedReport.Exception);
                     failedReportsSent++;
                     failedReport.FileInfo.Delete();
@@ -194,20 +193,28 @@ namespace CrashReporterDotNET
 
         private LoadFailedReportResult SelectFailedReport(FileInfo fileInfo)
         {
-            var serializer = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
-            LoadFailedReportResult? deserializedObject;
-            using (var stream = fileInfo.OpenRead())
+            FailedReport failedReport;
+            try
             {
-                deserializedObject = serializer.Deserialize(stream) as LoadFailedReportResult?;
+                failedReport = FailedReport.Load(fileInfo.FullName);
             }
-            if (deserializedObject == null)
+            catch (Exception e) when (e is SerializationException || e is XmlException)
+            {
+                failedReport = null;
+            }
+
+            if (failedReport?.Exception == null)
             {
                 fileInfo.Delete();
                 return default(LoadFailedReportResult);
             }
-            var result = deserializedObject.Value;
-            result.FileInfo = fileInfo;
-            return result;
+
+            return new LoadFailedReportResult
+            {
+                Exception = failedReport.Exception.ToException(),
+                ScreenShot = failedReport.ScreenShot,
+                FileInfo = fileInfo
+            };
         }
 
         /// <summary>
@@ -241,9 +248,7 @@ namespace CrashReporterDotNET
             }
 
             ApplicationTitle = !string.IsNullOrEmpty(appTitle) ? appTitle : mainAssembly.GetName().Name;
-            ApplicationVersion = ((Type.GetType("Mono.Runtime") == null) && ApplicationDeployment.IsNetworkDeployed)
-                ? ApplicationDeployment.CurrentDeployment.CurrentVersion.ToString()
-                : mainAssembly.GetName().Version.ToString();
+            ApplicationVersion = GetClickOnceVersion() ?? mainAssembly.GetName().Version.ToString();
             try
             {
                 if (CaptureScreen)
@@ -293,6 +298,21 @@ namespace CrashReporterDotNET
                     new CrashReport(this).ShowDialog();
                 }
             }
+        }
+
+        private static string GetClickOnceVersion()
+        {
+#if NETFRAMEWORK
+            return Type.GetType("Mono.Runtime") == null && ApplicationDeployment.IsNetworkDeployed
+                ? ApplicationDeployment.CurrentDeployment.CurrentVersion.ToString()
+                : null;
+#else
+            // ClickOnce for .NET 5+ exposes deployment information through environment variables.
+            return bool.TryParse(Environment.GetEnvironmentVariable("ClickOnce_IsNetworkDeployed"), out var isNetworkDeployed) &&
+                   isNetworkDeployed
+                ? Environment.GetEnvironmentVariable("ClickOnce_CurrentVersion")
+                : null;
+#endif
         }
 
         internal void SendReport(bool includeScreenshot,
@@ -434,10 +454,10 @@ namespace CrashReporterDotNET
                     <div class=""message"">
                     {4}
                     </div>
-                    </div>", HttpUtility.HtmlEncode(ApplicationTitle),
-                    HttpUtility.HtmlEncode(ApplicationVersion),
-                    HttpUtility.HtmlEncode(HelperMethods.GetWindowsVersion()),
-                    HttpUtility.HtmlEncode(Environment.Version.ToString()),
+                    </div>", WebUtility.HtmlEncode(ApplicationTitle),
+                    WebUtility.HtmlEncode(ApplicationVersion),
+                    WebUtility.HtmlEncode(HelperMethods.GetWindowsVersion()),
+                    WebUtility.HtmlEncode(Environment.Version.ToString()),
                     CreateReport(Exception));
             if (!String.IsNullOrEmpty(userMessage))
             {
@@ -447,7 +467,7 @@ namespace CrashReporterDotNET
                             <h3>User Comment</h3>
                             </div>
                             <div class=""message"">
-                            <p>{HttpUtility.HtmlEncode(userMessage)}</p>
+                            <p>{WebUtility.HtmlEncode(userMessage)}</p>
                             </div>
                             </div>";
             }
@@ -460,7 +480,7 @@ namespace CrashReporterDotNET
                             <h3>Developer Message</h3>
                             </div>
                             <div class=""message"">
-                            <p>{HttpUtility.HtmlEncode(DeveloperMessage.Trim())}</p>
+                            <p>{WebUtility.HtmlEncode(DeveloperMessage.Trim())}</p>
                             </div>
                             </div>";
             }
@@ -477,7 +497,7 @@ namespace CrashReporterDotNET
                         <h3>Exception Type</h3>
                         </div>
                         <div class=""message"">
-                        <p>{HttpUtility.HtmlEncode(exception.GetType().ToString())}</p>
+                        <p>{WebUtility.HtmlEncode(ReplayedException.GetTypeName(exception))}</p>
                         </div>
                         </div><br/>
                         <div class=""content"">
@@ -485,7 +505,7 @@ namespace CrashReporterDotNET
                         <h3>Error Message</h3>
                         </div>
                         <div class=""message"">
-                        <p>{HttpUtility.HtmlEncode(exception.Message)}</p>
+                        <p>{WebUtility.HtmlEncode(exception.Message)}</p>
                         </div>
                         </div><br/>
                         <div class=""content"">
@@ -493,7 +513,7 @@ namespace CrashReporterDotNET
                         <h3>Source</h3>
                         </div>
                         <div class=""message"">
-                        <p>{HttpUtility.HtmlEncode(exception.Source ?? "No source")}</p>
+                        <p>{WebUtility.HtmlEncode(exception.Source ?? "No source")}</p>
                         </div>
                         </div><br/>
                         <div class=""content"">
@@ -502,7 +522,7 @@ namespace CrashReporterDotNET
                         </div>
                         <div class=""message"">
                         <p>{
-                    HttpUtility.HtmlEncode(exception.StackTrace ?? "No stack trace").Replace("\r\n", "<br/>")
+                    WebUtility.HtmlEncode(exception.StackTrace ?? "No stack trace").Replace("\r\n", "<br/>")
                 }</p>
                         </div>
                         </div>";
@@ -576,18 +596,16 @@ namespace CrashReporterDotNET
                 if (DoctorDumpSettings != null && DoctorDumpSettings.OpenReportInBrowser)
                 {
                     if (!string.IsNullOrEmpty(reportUrl))
-                        Process.Start(reportUrl);
+                        Process.Start(new ProcessStartInfo(reportUrl) { UseShellExecute = true });
                 }
             }
         }
 
         #endregion
-        [Serializable]
         private struct LoadFailedReportResult
         {
             public Exception Exception;
             public byte[] ScreenShot;
-            [NonSerialized]
             public FileInfo FileInfo;
         }
     }

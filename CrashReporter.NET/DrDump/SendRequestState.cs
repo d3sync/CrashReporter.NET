@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Globalization;
 using System.Net;
 using CrashReporterDotNET.com.drdump;
@@ -11,7 +11,7 @@ namespace CrashReporterDotNET.DrDump
 
         public PrivateData PrivateData { get; set; }
 
-        public SendAnonymousReportCompletedEventArgs SendAnonymousReportResult { get; set; }
+        public DrDumpService.RequestResult SendAnonymousReportResult { get; set; }
 
         private static ExceptionInfo ConvertToExceptionInfo(Exception e, bool anonymous)
         {
@@ -19,8 +19,8 @@ namespace CrashReporterDotNET.DrDump
                 return null;
             return new ExceptionInfo
             {
-                Type = e.GetType().ToString(),
-                HResult = System.Runtime.InteropServices.Marshal.GetHRForException(e),
+                Type = ReplayedException.GetTypeName(e),
+                HResult = e.HResult,
                 StackTrace = e.StackTrace,
                 Source = e.Source,
                 Message = anonymous ? null : e.Message,
@@ -51,9 +51,12 @@ namespace CrashReporterDotNET.DrDump
         private int GetAnonymousMachineID()
         {
             System.Net.NetworkInformation.PhysicalAddress mac = GetMacAddress();
-            return mac != null
-                ? BitConverter.ToInt32(System.Security.Cryptography.MD5.Create().ComputeHash(mac.GetAddressBytes()), 0)
-                : 0;
+            if (mac == null)
+                return 0;
+            using (var md5 = System.Security.Cryptography.MD5.Create())
+            {
+                return BitConverter.ToInt32(md5.ComputeHash(mac.GetAddressBytes()), 0);
+            }
         }
 
         internal DetailedExceptionDescription GetDetailedExceptionDescription()

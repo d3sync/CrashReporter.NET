@@ -345,18 +345,6 @@
   <data name="tabPageGeneral.Text" xml:space="preserve">
     <value>General</value>
   </data>
-  <data name="&gt;&gt;tabPageGeneral.Name" xml:space="preserve">
-    <value>tabPageGeneral</value>
-  </data>
-  <data name="&gt;&gt;tabPageGeneral.Type" xml:space="preserve">
-    <value>System.Windows.Forms.TabPage, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;tabPageGeneral.Parent" xml:space="preserve">
-    <value>tabControl</value>
-  </data>
-  <data name="&gt;&gt;tabPageGeneral.ZOrder" xml:space="preserve">
-    <value>0</value>
-  </data>
   <data name="textBoxEmail.Font" type="System.Drawing.Font, System.Drawing">
     <value>Segoe UI, 9pt</value>
   </data>
@@ -371,18 +359,6 @@
   </data>
   <data name="textBoxEmail.TabIndex" type="System.Int32, mscorlib">
     <value>4</value>
-  </data>
-  <data name="&gt;&gt;textBoxEmail.Name" xml:space="preserve">
-    <value>textBoxEmail</value>
-  </data>
-  <data name="&gt;&gt;textBoxEmail.Type" xml:space="preserve">
-    <value>System.Windows.Forms.TextBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;textBoxEmail.Parent" xml:space="preserve">
-    <value>tabPageGeneral</value>
-  </data>
-  <data name="&gt;&gt;textBoxEmail.ZOrder" xml:space="preserve">
-    <value>0</value>
   </data>
   <data name="labelEmail.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
@@ -402,18 +378,6 @@
   <data name="labelEmail.Text" xml:space="preserve">
     <value>Email</value>
   </data>
-  <data name="&gt;&gt;labelEmail.Name" xml:space="preserve">
-    <value>labelEmail</value>
-  </data>
-  <data name="&gt;&gt;labelEmail.Type" xml:space="preserve">
-    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;labelEmail.Parent" xml:space="preserve">
-    <value>tabPageGeneral</value>
-  </data>
-  <data name="&gt;&gt;labelEmail.ZOrder" xml:space="preserve">
-    <value>1</value>
-  </data>
   <data name="textBoxUserMessage.Font" type="System.Drawing.Font, System.Drawing">
     <value>Segoe UI, 9pt</value>
   </data>
@@ -431,18 +395,6 @@
   </data>
   <data name="textBoxUserMessage.TabIndex" type="System.Int32, mscorlib">
     <value>5</value>
-  </data>
-  <data name="&gt;&gt;textBoxUserMessage.Name" xml:space="preserve">
-    <value>textBoxUserMessage</value>
-  </data>
-  <data name="&gt;&gt;textBoxUserMessage.Type" xml:space="preserve">
-    <value>System.Windows.Forms.TextBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;textBoxUserMessage.Parent" xml:space="preserve">
-    <value>tabPageGeneral</value>
-  </data>
-  <data name="&gt;&gt;textBoxUserMessage.ZOrder" xml:space="preserve">
-    <value>2</value>
   </data>
   <data name="labelMessage.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
@@ -462,18 +414,6 @@
   <data name="labelMessage.Text" xml:space="preserve">
     <value>Please tell us how application crashed so we can fix it.</value>
   </data>
-  <data name="&gt;&gt;labelMessage.Name" xml:space="preserve">
-    <value>labelMessage</value>
-  </data>
-  <data name="&gt;&gt;labelMessage.Type" xml:space="preserve">
-    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;labelMessage.Parent" xml:space="preserve">
-    <value>tabPageGeneral</value>
-  </data>
-  <data name="&gt;&gt;labelMessage.ZOrder" xml:space="preserve">
-    <value>3</value>
-  </data>
   <data name="textBoxTime.Font" type="System.Drawing.Font, System.Drawing">
     <value>Segoe UI, 9pt</value>
   </data>
@@ -488,18 +428,6 @@
   </data>
   <data name="textBoxTime.TabIndex" type="System.Int32, mscorlib">
     <value>3</value>
-  </data>
-  <data name="&gt;&gt;textBoxTime.Name" xml:space="preserve">
-    <value>textBoxTime</value>
-  </data>
-  <data name="&gt;&gt;textBoxTime.Type" xml:space="preserve">
-    <value>System.Windows.Forms.TextBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;textBoxTime.Parent" xml:space="preserve">
-    <value>tabPageGeneral</value>
-  </data>
-  <data name="&gt;&gt;textBoxTime.ZOrder" xml:space="preserve">
-    <value>4</value>
   </data>
   <data name="labelTime.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
@@ -519,18 +447,6 @@
   <data name="labelTime.Text" xml:space="preserve">
     <value>Time</value>
   </data>
-  <data name="&gt;&gt;labelTime.Name" xml:space="preserve">
-    <value>labelTime</value>
-  </data>
-  <data name="&gt;&gt;labelTime.Type" xml:space="preserve">
-    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;labelTime.Parent" xml:space="preserve">
-    <value>tabPageGeneral</value>
-  </data>
-  <data name="&gt;&gt;labelTime.ZOrder" xml:space="preserve">
-    <value>5</value>
-  </data>
   <data name="textBoxApplicationVersion.Font" type="System.Drawing.Font, System.Drawing">
     <value>Segoe UI, 9pt</value>
   </data>
@@ -545,18 +461,6 @@
   </data>
   <data name="textBoxApplicationVersion.TabIndex" type="System.Int32, mscorlib">
     <value>2</value>
-  </data>
-  <data name="&gt;&gt;textBoxApplicationVersion.Name" xml:space="preserve">
-    <value>textBoxApplicationVersion</value>
-  </data>
-  <data name="&gt;&gt;textBoxApplicationVersion.Type" xml:space="preserve">
-    <value>System.Windows.Forms.TextBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;textBoxApplicationVersion.Parent" xml:space="preserve">
-    <value>tabPageGeneral</value>
-  </data>
-  <data name="&gt;&gt;textBoxApplicationVersion.ZOrder" xml:space="preserve">
-    <value>6</value>
   </data>
   <data name="labelVersion.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
@@ -576,18 +480,6 @@
   <data name="labelVersion.Text" xml:space="preserve">
     <value>Version</value>
   </data>
-  <data name="&gt;&gt;labelVersion.Name" xml:space="preserve">
-    <value>labelVersion</value>
-  </data>
-  <data name="&gt;&gt;labelVersion.Type" xml:space="preserve">
-    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;labelVersion.Parent" xml:space="preserve">
-    <value>tabPageGeneral</value>
-  </data>
-  <data name="&gt;&gt;labelVersion.ZOrder" xml:space="preserve">
-    <value>7</value>
-  </data>
   <data name="textBoxApplicationName.Font" type="System.Drawing.Font, System.Drawing">
     <value>Segoe UI, 9pt</value>
   </data>
@@ -602,18 +494,6 @@
   </data>
   <data name="textBoxApplicationName.TabIndex" type="System.Int32, mscorlib">
     <value>1</value>
-  </data>
-  <data name="&gt;&gt;textBoxApplicationName.Name" xml:space="preserve">
-    <value>textBoxApplicationName</value>
-  </data>
-  <data name="&gt;&gt;textBoxApplicationName.Type" xml:space="preserve">
-    <value>System.Windows.Forms.TextBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;textBoxApplicationName.Parent" xml:space="preserve">
-    <value>tabPageGeneral</value>
-  </data>
-  <data name="&gt;&gt;textBoxApplicationName.ZOrder" xml:space="preserve">
-    <value>8</value>
   </data>
   <data name="labelApplication.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
@@ -632,18 +512,6 @@
   </data>
   <data name="labelApplication.Text" xml:space="preserve">
     <value>Application</value>
-  </data>
-  <data name="&gt;&gt;labelApplication.Name" xml:space="preserve">
-    <value>labelApplication</value>
-  </data>
-  <data name="&gt;&gt;labelApplication.Type" xml:space="preserve">
-    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;labelApplication.Parent" xml:space="preserve">
-    <value>tabPageGeneral</value>
-  </data>
-  <data name="&gt;&gt;labelApplication.ZOrder" xml:space="preserve">
-    <value>9</value>
   </data>
   <data name="textBoxExceptionMessage.Font" type="System.Drawing.Font, System.Drawing">
     <value>Segoe UI, 9pt</value>
@@ -666,18 +534,6 @@
   <data name="textBoxExceptionMessage.TabIndex" type="System.Int32, mscorlib">
     <value>0</value>
   </data>
-  <data name="&gt;&gt;textBoxExceptionMessage.Name" xml:space="preserve">
-    <value>textBoxExceptionMessage</value>
-  </data>
-  <data name="&gt;&gt;textBoxExceptionMessage.Type" xml:space="preserve">
-    <value>System.Windows.Forms.TextBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;textBoxExceptionMessage.Parent" xml:space="preserve">
-    <value>tabPageGeneral</value>
-  </data>
-  <data name="&gt;&gt;textBoxExceptionMessage.ZOrder" xml:space="preserve">
-    <value>10</value>
-  </data>
   <data name="pictureBoxError.Location" type="System.Drawing.Point, System.Drawing">
     <value>6, 6</value>
   </data>
@@ -692,18 +548,6 @@
   </data>
   <data name="pictureBoxError.TabIndex" type="System.Int32, mscorlib">
     <value>0</value>
-  </data>
-  <data name="&gt;&gt;pictureBoxError.Name" xml:space="preserve">
-    <value>pictureBoxError</value>
-  </data>
-  <data name="&gt;&gt;pictureBoxError.Type" xml:space="preserve">
-    <value>System.Windows.Forms.PictureBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;pictureBoxError.Parent" xml:space="preserve">
-    <value>tabPageGeneral</value>
-  </data>
-  <data name="&gt;&gt;pictureBoxError.ZOrder" xml:space="preserve">
-    <value>11</value>
   </data>
   <data name="&gt;&gt;textBoxException.Name" xml:space="preserve">
     <value>textBoxException</value>
@@ -819,18 +663,6 @@
   <data name="tabPageExceptions.Text" xml:space="preserve">
     <value>Exceptions</value>
   </data>
-  <data name="&gt;&gt;tabPageExceptions.Name" xml:space="preserve">
-    <value>tabPageExceptions</value>
-  </data>
-  <data name="&gt;&gt;tabPageExceptions.Type" xml:space="preserve">
-    <value>System.Windows.Forms.TabPage, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;tabPageExceptions.Parent" xml:space="preserve">
-    <value>tabControl</value>
-  </data>
-  <data name="&gt;&gt;tabPageExceptions.ZOrder" xml:space="preserve">
-    <value>1</value>
-  </data>
   <data name="textBoxException.Font" type="System.Drawing.Font, System.Drawing">
     <value>Segoe UI, 9pt</value>
   </data>
@@ -844,18 +676,6 @@
     <value>609, 23</value>
   </data>
   <data name="textBoxException.TabIndex" type="System.Int32, mscorlib">
-    <value>0</value>
-  </data>
-  <data name="&gt;&gt;textBoxException.Name" xml:space="preserve">
-    <value>textBoxException</value>
-  </data>
-  <data name="&gt;&gt;textBoxException.Type" xml:space="preserve">
-    <value>System.Windows.Forms.TextBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;textBoxException.Parent" xml:space="preserve">
-    <value>tabPageExceptions</value>
-  </data>
-  <data name="&gt;&gt;textBoxException.ZOrder" xml:space="preserve">
     <value>0</value>
   </data>
   <data name="labelExceptionType.AutoSize" type="System.Boolean, mscorlib">
@@ -876,18 +696,6 @@
   <data name="labelExceptionType.Text" xml:space="preserve">
     <value>Exception Type</value>
   </data>
-  <data name="&gt;&gt;labelExceptionType.Name" xml:space="preserve">
-    <value>labelExceptionType</value>
-  </data>
-  <data name="&gt;&gt;labelExceptionType.Type" xml:space="preserve">
-    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;labelExceptionType.Parent" xml:space="preserve">
-    <value>tabPageExceptions</value>
-  </data>
-  <data name="&gt;&gt;labelExceptionType.ZOrder" xml:space="preserve">
-    <value>1</value>
-  </data>
   <data name="textBoxSource.Font" type="System.Drawing.Font, System.Drawing">
     <value>Segoe UI, 9pt</value>
   </data>
@@ -901,18 +709,6 @@
     <value>609, 23</value>
   </data>
   <data name="textBoxSource.TabIndex" type="System.Int32, mscorlib">
-    <value>2</value>
-  </data>
-  <data name="&gt;&gt;textBoxSource.Name" xml:space="preserve">
-    <value>textBoxSource</value>
-  </data>
-  <data name="&gt;&gt;textBoxSource.Type" xml:space="preserve">
-    <value>System.Windows.Forms.TextBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;textBoxSource.Parent" xml:space="preserve">
-    <value>tabPageExceptions</value>
-  </data>
-  <data name="&gt;&gt;textBoxSource.ZOrder" xml:space="preserve">
     <value>2</value>
   </data>
   <data name="labelSource.AutoSize" type="System.Boolean, mscorlib">
@@ -932,18 +728,6 @@
   </data>
   <data name="labelSource.Text" xml:space="preserve">
     <value>Source</value>
-  </data>
-  <data name="&gt;&gt;labelSource.Name" xml:space="preserve">
-    <value>labelSource</value>
-  </data>
-  <data name="&gt;&gt;labelSource.Type" xml:space="preserve">
-    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;labelSource.Parent" xml:space="preserve">
-    <value>tabPageExceptions</value>
-  </data>
-  <data name="&gt;&gt;labelSource.ZOrder" xml:space="preserve">
-    <value>3</value>
   </data>
   <data name="textBoxStackTrace.Font" type="System.Drawing.Font, System.Drawing">
     <value>Segoe UI, 9pt</value>
@@ -966,18 +750,6 @@
   <data name="textBoxStackTrace.TabIndex" type="System.Int32, mscorlib">
     <value>3</value>
   </data>
-  <data name="&gt;&gt;textBoxStackTrace.Name" xml:space="preserve">
-    <value>textBoxStackTrace</value>
-  </data>
-  <data name="&gt;&gt;textBoxStackTrace.Type" xml:space="preserve">
-    <value>System.Windows.Forms.TextBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;textBoxStackTrace.Parent" xml:space="preserve">
-    <value>tabPageExceptions</value>
-  </data>
-  <data name="&gt;&gt;textBoxStackTrace.ZOrder" xml:space="preserve">
-    <value>4</value>
-  </data>
   <data name="labelStackTrace.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
   </data>
@@ -995,18 +767,6 @@
   </data>
   <data name="labelStackTrace.Text" xml:space="preserve">
     <value>Stack Trace</value>
-  </data>
-  <data name="&gt;&gt;labelStackTrace.Name" xml:space="preserve">
-    <value>labelStackTrace</value>
-  </data>
-  <data name="&gt;&gt;labelStackTrace.Type" xml:space="preserve">
-    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;labelStackTrace.Parent" xml:space="preserve">
-    <value>tabPageExceptions</value>
-  </data>
-  <data name="&gt;&gt;labelStackTrace.ZOrder" xml:space="preserve">
-    <value>5</value>
   </data>
   <data name="textBoxMessage.Font" type="System.Drawing.Font, System.Drawing">
     <value>Segoe UI, 9pt</value>
@@ -1029,18 +789,6 @@
   <data name="textBoxMessage.TabIndex" type="System.Int32, mscorlib">
     <value>1</value>
   </data>
-  <data name="&gt;&gt;textBoxMessage.Name" xml:space="preserve">
-    <value>textBoxMessage</value>
-  </data>
-  <data name="&gt;&gt;textBoxMessage.Type" xml:space="preserve">
-    <value>System.Windows.Forms.TextBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;textBoxMessage.Parent" xml:space="preserve">
-    <value>tabPageExceptions</value>
-  </data>
-  <data name="&gt;&gt;textBoxMessage.ZOrder" xml:space="preserve">
-    <value>6</value>
-  </data>
   <data name="labelExceptionMessage.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
   </data>
@@ -1058,18 +806,6 @@
   </data>
   <data name="labelExceptionMessage.Text" xml:space="preserve">
     <value>Message</value>
-  </data>
-  <data name="&gt;&gt;labelExceptionMessage.Name" xml:space="preserve">
-    <value>labelExceptionMessage</value>
-  </data>
-  <data name="&gt;&gt;labelExceptionMessage.Type" xml:space="preserve">
-    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;labelExceptionMessage.Parent" xml:space="preserve">
-    <value>tabPageExceptions</value>
-  </data>
-  <data name="&gt;&gt;labelExceptionMessage.ZOrder" xml:space="preserve">
-    <value>7</value>
   </data>
   <data name="&gt;&gt;linkLabelView.Name" xml:space="preserve">
     <value>linkLabelView</value>
@@ -1125,18 +861,6 @@
   <data name="tabPageScreenshot.Text" xml:space="preserve">
     <value>Screenshot</value>
   </data>
-  <data name="&gt;&gt;tabPageScreenshot.Name" xml:space="preserve">
-    <value>tabPageScreenshot</value>
-  </data>
-  <data name="&gt;&gt;tabPageScreenshot.Type" xml:space="preserve">
-    <value>System.Windows.Forms.TabPage, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;tabPageScreenshot.Parent" xml:space="preserve">
-    <value>tabControl</value>
-  </data>
-  <data name="&gt;&gt;tabPageScreenshot.ZOrder" xml:space="preserve">
-    <value>2</value>
-  </data>
   <data name="linkLabelView.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
     <value>Top, Right</value>
   </data>
@@ -1157,18 +881,6 @@
   </data>
   <data name="linkLabelView.TextAlign" type="System.Drawing.ContentAlignment, System.Drawing">
     <value>MiddleRight</value>
-  </data>
-  <data name="&gt;&gt;linkLabelView.Name" xml:space="preserve">
-    <value>linkLabelView</value>
-  </data>
-  <data name="&gt;&gt;linkLabelView.Type" xml:space="preserve">
-    <value>System.Windows.Forms.LinkLabel, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;linkLabelView.Parent" xml:space="preserve">
-    <value>tabPageScreenshot</value>
-  </data>
-  <data name="&gt;&gt;linkLabelView.ZOrder" xml:space="preserve">
-    <value>0</value>
   </data>
   <data name="&gt;&gt;pictureBoxScreenshot.Name" xml:space="preserve">
     <value>pictureBoxScreenshot</value>
@@ -1203,18 +915,6 @@
   <data name="groupBoxScreenshot.Text" xml:space="preserve">
     <value>Screenshot</value>
   </data>
-  <data name="&gt;&gt;groupBoxScreenshot.Name" xml:space="preserve">
-    <value>groupBoxScreenshot</value>
-  </data>
-  <data name="&gt;&gt;groupBoxScreenshot.Type" xml:space="preserve">
-    <value>System.Windows.Forms.GroupBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;groupBoxScreenshot.Parent" xml:space="preserve">
-    <value>tabPageScreenshot</value>
-  </data>
-  <data name="&gt;&gt;groupBoxScreenshot.ZOrder" xml:space="preserve">
-    <value>1</value>
-  </data>
   <data name="pictureBoxScreenshot.Dock" type="System.Windows.Forms.DockStyle, System.Windows.Forms">
     <value>Fill</value>
   </data>
@@ -1231,18 +931,6 @@
     <value>StretchImage</value>
   </data>
   <data name="pictureBoxScreenshot.TabIndex" type="System.Int32, mscorlib">
-    <value>0</value>
-  </data>
-  <data name="&gt;&gt;pictureBoxScreenshot.Name" xml:space="preserve">
-    <value>pictureBoxScreenshot</value>
-  </data>
-  <data name="&gt;&gt;pictureBoxScreenshot.Type" xml:space="preserve">
-    <value>System.Windows.Forms.PictureBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;pictureBoxScreenshot.Parent" xml:space="preserve">
-    <value>groupBoxScreenshot</value>
-  </data>
-  <data name="&gt;&gt;pictureBoxScreenshot.ZOrder" xml:space="preserve">
     <value>0</value>
   </data>
   <metadata name="toolTip.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
@@ -1274,18 +962,6 @@
   </data>
   <data name="checkBoxIncludeScreenshot.ToolTip" xml:space="preserve">
     <value>Add screenshot of error screen in your crash report.</value>
-  </data>
-  <data name="&gt;&gt;checkBoxIncludeScreenshot.Name" xml:space="preserve">
-    <value>checkBoxIncludeScreenshot</value>
-  </data>
-  <data name="&gt;&gt;checkBoxIncludeScreenshot.Type" xml:space="preserve">
-    <value>System.Windows.Forms.CheckBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;checkBoxIncludeScreenshot.Parent" xml:space="preserve">
-    <value>tabPageScreenshot</value>
-  </data>
-  <data name="&gt;&gt;checkBoxIncludeScreenshot.ZOrder" xml:space="preserve">
-    <value>2</value>
   </data>
   <data name="buttonSave.Font" type="System.Drawing.Font, System.Drawing">
     <value>Segoe UI, 9pt</value>

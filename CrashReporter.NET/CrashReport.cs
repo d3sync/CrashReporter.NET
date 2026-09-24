@@ -54,7 +54,7 @@ namespace CrashReporterDotNET
 
         private void CrashReportLoad(object sender, EventArgs e)
         {
-            textBoxException.Text = _reportCrash.Exception.GetType().ToString();
+            textBoxException.Text = ReplayedException.GetTypeName(_reportCrash.Exception);
             textBoxApplicationName.Text = _reportCrash.ApplicationTitle;
             textBoxApplicationVersion.Text = _reportCrash.ApplicationVersion;
             textBoxExceptionMessage.Text = _reportCrash.Exception.Message;
@@ -161,7 +161,7 @@ namespace CrashReporterDotNET
                 if (_reportCrash.DoctorDumpSettings != null && _reportCrash.DoctorDumpSettings.OpenReportInBrowser)
                 {
                     if (!string.IsNullOrEmpty(e.Result.UrlToProblem))
-                        Process.Start(e.Result.UrlToProblem);
+                        Process.Start(new ProcessStartInfo(e.Result.UrlToProblem) { UseShellExecute = true });
                 }
             }
         }
