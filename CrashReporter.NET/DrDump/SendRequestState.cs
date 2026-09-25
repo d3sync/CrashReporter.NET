@@ -19,11 +19,11 @@ namespace CrashReporterDotNET.DrDump
                 return null;
             return new ExceptionInfo
             {
-                Type = ReplayedException.GetTypeName(e),
+                Type = XmlText.ToValidXml(ReplayedException.GetTypeName(e)),
                 HResult = e.HResult,
-                StackTrace = e.StackTrace,
-                Source = e.Source,
-                Message = anonymous ? null : e.Message,
+                StackTrace = XmlText.ToValidXml(e.StackTrace),
+                Source = XmlText.ToValidXml(e.Source),
+                Message = anonymous ? null : XmlText.ToValidXml(e.Message),
                 InnerException = ConvertToExceptionInfo(e.InnerException, anonymous)
             };
         }
@@ -50,7 +50,18 @@ namespace CrashReporterDotNET.DrDump
 
         private int GetAnonymousMachineID()
         {
-            System.Net.NetworkInformation.PhysicalAddress mac = GetMacAddress();
+            System.Net.NetworkInformation.PhysicalAddress mac;
+            try
+            {
+                mac = GetMacAddress();
+            }
+            catch (Exception e) when (e is System.Net.Sockets.SocketException ||
+                                      e is System.Net.NetworkInformation.NetworkInformationException)
+            {
+                // No network route (e.g. offline): the machine ID is optional, the report must still be created.
+                return 0;
+            }
+
             if (mac == null)
                 return 0;
             using (var md5 = System.Security.Cryptography.MD5.Create())
@@ -64,67 +75,75 @@ namespace CrashReporterDotNET.DrDump
             return new DetailedExceptionDescription
             {
                 Exception = GetExceptionDescription(false),
-                DeveloperMessage = PrivateData.DeveloperMessage,
-                UserDescription = PrivateData.UserMessage,
-                UserEmail = PrivateData.UserEmail,
+                DeveloperMessage = XmlText.ToValidXml(PrivateData.DeveloperMessage),
+                UserDescription = XmlText.ToValidXml(PrivateData.UserMessage),
+                UserEmail = XmlText.ToValidXml(PrivateData.UserEmail),
                 PngScreenShot = PrivateData.Screenshot
             };
         }
-        
+
         internal ExceptionDescription GetExceptionDescription(bool anonymous)
         {
             var oldCulture = System.Threading.Thread.CurrentThread.CurrentCulture;
             var oldUICulture = System.Threading.Thread.CurrentThread.CurrentUICulture;
             System.Threading.Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
             System.Threading.Thread.CurrentThread.CurrentUICulture = CultureInfo.InvariantCulture;
-
-            var osVersion = Environment.OSVersion;
-            var os = $"os={osVersion.Platform};v={HelperMethods.GetOSVersion()};spname={osVersion.ServicePack}";
-
-            var exceptionDescription = new ExceptionDescription
+            try
             {
-                ClrVersion = Environment.Version.ToString(),
-                OS = os,
-                CrashDate = DateTime.UtcNow,
-                PCID = GetAnonymousMachineID(),
-                Exception = ConvertToExceptionInfo(AnonymousData.Exception, anonymous),
-                ExceptionString = anonymous ? null : AnonymousData.Exception.ToString(),
-            };
+                var osVersion = Environment.OSVersion;
+                // The numeric version is reported as-is (Windows 11 is 10.0.22000+); the service maps it to a product name.
+                var os = $"os={osVersion.Platform};v={HelperMethods.GetOSVersion()};spname={osVersion.ServicePack}";
 
-            System.Threading.Thread.CurrentThread.CurrentCulture = oldCulture;
-            System.Threading.Thread.CurrentThread.CurrentUICulture = oldUICulture;
-
-            return exceptionDescription;
+                return new ExceptionDescription
+                {
+                    ClrVersion = Environment.Version.ToString(),
+                    OS = os,
+                    CrashDate = AnonymousData.CrashDateUtc ?? DateTime.UtcNow,
+                    PCID = GetAnonymousMachineID(),
+                    Exception = ConvertToExceptionInfo(AnonymousData.Exception, anonymous),
+                    ExceptionString = anonymous ? null : XmlText.ToValidXml(AnonymousData.Exception.ToString()),
+                };
+            }
+            finally
+            {
+                System.Threading.Thread.CurrentThread.CurrentCulture = oldCulture;
+                System.Threading.Thread.CurrentThread.CurrentUICulture = oldUICulture;
+            }
         }
 
         internal Application GetApplication()
         {
             var mainAssembly = System.Reflection.Assembly.GetEntryAssembly();
 
-            string moduleName = mainAssembly.GetName().Name;
+            string moduleName = mainAssembly?.GetName().Name ?? FailedReportQueue.GetApplicationName();
 
-            var attributes = mainAssembly.GetCustomAttributes(typeof(System.Reflection.AssemblyCompanyAttribute), true);
-            string appCompany = attributes.Length > 0
+            var attributes = mainAssembly?.GetCustomAttributes(typeof(System.Reflection.AssemblyCompanyAttribute), true);
+            string appCompany = attributes?.Length > 0
                 ? ((System.Reflection.AssemblyCompanyAttribute) attributes[0]).Company
                 : AnonymousData.ToEmail;
 
-            var attributes2 = mainAssembly.GetCustomAttributes(typeof(System.Reflection.AssemblyTitleAttribute), true);
-            string appTitle = attributes2.Length > 0
-                ? ((System.Reflection.AssemblyTitleAttribute) attributes2[0]).Title
-                : moduleName;
+            var attributes2 = mainAssembly?.GetCustomAttributes(typeof(System.Reflection.AssemblyTitleAttribute), true);
+            string appTitle = !string.IsNullOrEmpty(AnonymousData.ApplicationTitle)
+                ? AnonymousData.ApplicationTitle
+                : attributes2?.Length > 0
+                    ? ((System.Reflection.AssemblyTitleAttribute) attributes2[0]).Title
+                    : moduleName;
 
-            var appVersion = mainAssembly.GetName().Version;
+            Version appVersion = null;
+            if (!string.IsNullOrEmpty(AnonymousData.ApplicationVersion))
+                Version.TryParse(AnonymousData.ApplicationVersion, out appVersion);
+            appVersion = appVersion ?? mainAssembly?.GetName().Version ?? new Version(0, 0, 0, 0);
 
             return new Application
             {
                 ApplicationGUID = AnonymousData.ApplicationID?.ToString("D"),
-                AppName = appTitle,
-                CompanyName = appCompany,
-                Email = AnonymousData.ToEmail,
-                V1 = (ushort) appVersion.Major,
-                V2 = (ushort) appVersion.Minor,
-                V3 = (ushort) appVersion.Build,
-                V4 = (ushort) appVersion.Revision,
+                AppName = XmlText.ToValidXml(appTitle),
+                CompanyName = XmlText.ToValidXml(appCompany),
+                Email = XmlText.ToValidXml(AnonymousData.ToEmail),
+                V1 = (ushort) Math.Max(0, appVersion.Major),
+                V2 = (ushort) Math.Max(0, appVersion.Minor),
+                V3 = (ushort) Math.Max(0, appVersion.Build),
+                V4 = (ushort) Math.Max(0, appVersion.Revision),
                 MainModule = moduleName
             };
         }

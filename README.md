@@ -11,6 +11,20 @@ Send crash reports of your desktop application developed using .NET 10 or .NET F
 | `net10.0-windows` | Windows Forms and WPF applications on .NET 10. |
 | `net48` | Windows Forms and WPF applications on .NET Framework 4.8. |
 
+### What's new in 2.1
+
+* `RetryFailedReportsAsync(CancellationToken)` retries failed reports without blocking the UI thread. The synchronous `RetryFailedReports()` still works, but blocks until all reports are sent.
+* Failed reports are resent exactly as they were captured, including the original screenshot, application version, developer message and what the user typed. Retrying no longer takes a new screenshot.
+* Failed reports are queued per application in `%TEMP%\CrashReporterNET\<application name>\`, with unique file names, and are written atomically. Exception messages containing control characters no longer prevent a report from being saved.
+* E-mail reports, saved HTML reports and the crash dialog show Windows 11 correctly: Windows 11 still reports version 10.0 and its registry product name still says "Windows 10", so the name is now derived from the build number (22000 or later) on workstation editions. Doctor Dump receives the unchanged numeric version (e.g. `10.0.22631`); how its dashboard labels that version is up to the service.
+* Only one retry per application runs at a time, also across processes, so a report is never sent twice by overlapping retries. Each retried report must be delivered within `DeliveryTimeout` (100 seconds by default), and cancelling `RetryFailedReportsAsync` also interrupts an SMTP delivery in progress on .NET Framework.
+* Doctor Dump retries report the application title and version that crashed, not the version running when the report is retried.
+* The *Save report* button embeds the screenshot in the saved HTML file when *Include screenshot* is checked.
+* When `AnalyzeWithDoctorDump` is `false`, the crash dialog no longer sends an anonymous report to Doctor Dump.
+* Doctor Dump responses are validated: HTTP errors, SOAP faults and empty responses are reported as errors instead of being treated as success.
+* `CrashReporter.NET.dll` is always strong-name signed with the key committed in this repository (public key token `dee93ec6287efbf0`). This identity differs from the upstream `CrashReporter.NET.Official` package, which was signed with RBSoft's private key. Versions 2.0.0 and 2.0.1 of `d3sync.CrashReporter.NET` were not signed; strong-named applications need 2.1.0 or later.
+* Reports saved by 2.0.x in `%TEMP%\CrashReporterNET\` (not in an application folder) are not retried.
+
 ### Upgrading from 1.x
 
 Version 2.0 is a breaking release:
@@ -128,7 +142,8 @@ public partial class App : Application
         {
             Silent = true
         };
-        _reportCrash.RetryFailedReports();
+        // Retry reports that could not be sent earlier, in the background so startup is not blocked.
+        _ = _reportCrash.RetryFailedReportsAsync();
     }
 
     private void TaskSchedulerOnUnobservedTaskException(object sender, UnobservedTaskExceptionEventArgs unobservedTaskExceptionEventArgs)
