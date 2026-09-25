@@ -251,4 +251,6 @@ paket-files/
 .idea/
 *.sln.iml
 *.snk
+# Public strong-name key of this library (intentionally committed, see README).
+!CrashReporter.NET/CrashReporter.NET.snk
 /CrashReporter.NET/build/lib/net20

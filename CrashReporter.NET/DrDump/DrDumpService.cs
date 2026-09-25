@@ -1,6 +1,7 @@
 using System;
 using System.ComponentModel;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using CrashReporterDotNET.com.drdump;
@@ -16,6 +17,14 @@ namespace CrashReporterDotNET.DrDump
         private SendRequestState _sendRequestState;
 
         private readonly DrDumpSoapClient _uploader;
+
+        /// <summary>
+        /// Uses the given client (tests).
+        /// </summary>
+        internal DrDumpService(DrDumpSoapClient uploader)
+        {
+            _uploader = uploader;
+        }
 
         public DrDumpService(IWebProxy webProxy = null)
         {
@@ -60,13 +69,30 @@ namespace CrashReporterDotNET.DrDump
         public string SendReportSilently(Exception exception, string toEmail, Guid? applicationId, string developerMessage, string from,
             string userMessage, byte[] screenshot)
         {
-            _sendRequestState = new SendRequestState
+            // Task.Run avoids deadlocks when called from a thread with a synchronization context (e.g. the UI thread).
+            return Task.Run(() => SendReportAsync(exception, toEmail, applicationId, developerMessage, from, userMessage,
+                screenshot, null, null, null, CancellationToken.None)).GetAwaiter().GetResult();
+        }
+
+        /// <summary>
+        /// Sends the complete report without any UI and returns the URL of the problem page.
+        /// For a retried report, <paramref name="crashDateUtc"/>, <paramref name="applicationTitle"/> and
+        /// <paramref name="applicationVersion"/> (entry assembly version) are the saved values; null means now / the running application.
+        /// </summary>
+        public async Task<string> SendReportAsync(Exception exception, string toEmail, Guid? applicationId,
+            string developerMessage, string from, string userMessage, byte[] screenshot, DateTime? crashDateUtc,
+            string applicationTitle, string applicationVersion, CancellationToken cancellationToken)
+        {
+            var state = new SendRequestState
             {
                 AnonymousData = new AnonymousData
                 {
                     Exception = exception,
                     ToEmail = toEmail,
-                    ApplicationID = applicationId
+                    ApplicationID = applicationId,
+                    CrashDateUtc = crashDateUtc,
+                    ApplicationTitle = applicationTitle,
+                    ApplicationVersion = applicationVersion
                 },
                 PrivateData = new PrivateData
                 {
@@ -76,20 +102,17 @@ namespace CrashReporterDotNET.DrDump
                     Screenshot = screenshot
                 }
             };
+            _sendRequestState = state;
 
-            var clientLib = SendRequestState.GetClientLib();
-            var application = _sendRequestState.GetApplication();
-            var exceptionDescription = _sendRequestState.GetExceptionDescription(true);
-            var response = RunSynchronously(() =>
-                _uploader.SendAnonymousReportAsync(clientLib, application, exceptionDescription));
+            var response = await _uploader.SendAnonymousReportAsync(SendRequestState.GetClientLib(),
+                state.GetApplication(), state.GetExceptionDescription(true), cancellationToken).ConfigureAwait(false);
             if (response is ErrorResponse errorResponse)
                 throw new Exception(errorResponse.Error);
 
             if (response is NeedReportResponse)
             {
-                var detailedExceptionDescription = _sendRequestState.GetDetailedExceptionDescription();
-                var additionalDataResponse = RunSynchronously(() =>
-                    _uploader.SendAdditionalDataAsync(response.Context, detailedExceptionDescription));
+                var additionalDataResponse = await _uploader.SendAdditionalDataAsync(response.Context,
+                    state.GetDetailedExceptionDescription(), cancellationToken).ConfigureAwait(false);
                 if (additionalDataResponse is ErrorResponse errorAdditionalDataResponse)
                     throw new Exception(errorAdditionalDataResponse.Error);
                 return additionalDataResponse.UrlToProblem;
@@ -221,12 +244,6 @@ namespace CrashReporterDotNET.DrDump
 
                 asyncOperation.PostOperationCompleted(_ => completed(result), null);
             }, TaskScheduler.Default);
-        }
-
-        private static Response RunSynchronously(Func<Task<Response>> request)
-        {
-            // Task.Run avoids deadlocks when called from a thread with a synchronization context (e.g. the UI thread).
-            return Task.Run(request).GetAwaiter().GetResult();
         }
 
         internal sealed class RequestResult

@@ -12,6 +12,7 @@ using System.Net.Sockets;
 using System.Reflection;
 using System.Runtime.Serialization;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml;
 using CrashReporterDotNET.DrDump;
@@ -114,13 +115,37 @@ namespace CrashReporterDotNET
         internal string ApplicationTitle;
 
         internal string ApplicationVersion;
-        
+
+        /// <summary>
+        /// Version of the entry assembly, which Doctor Dump uses to identify the application version.
+        /// Can differ from <see cref="ApplicationVersion"/>, which is the ClickOnce version when deployed with ClickOnce.
+        /// </summary>
+        internal string ApplicationAssemblyVersion;
+
         internal byte[] ScreenShotBinary;
+
+        internal DateTime? CrashDateUtc;
+
+        /// <summary>
+        /// Maximum time to deliver one failed report when retrying (<see cref="RetryFailedReportsAsync"/>).
+        /// A report that is not delivered in time stays queued, and retrying stops until the next attempt.
+        /// </summary>
+        public TimeSpan DeliveryTimeout = TimeSpan.FromSeconds(100);
+
+        /// <summary>
+        /// Creates the Doctor Dump service used for retries. Replaced by tests.
+        /// </summary>
+        [NonSerialized]
+        internal Func<DrDumpService> DrDumpServiceFactory;
+
+        /// <summary>
+        /// Opens the Doctor Dump problem page. Replaced by tests.
+        /// </summary>
+        [NonSerialized]
+        internal Action<string> ReportUrlOpener = url => Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
 
         [NonSerialized]
         private DrDumpService _doctorDumpService;
-
-        private static readonly DirectoryInfo tempDirectory = new DirectoryInfo(Path.Combine(Path.GetTempPath(), "CrashReporterNET"));
 
         /// <summary>
         /// Object use to send exception report to your Inbox.
@@ -132,89 +157,283 @@ namespace CrashReporterDotNET
         }
         /// <summary>
         /// Save the exception to the user's temporary directory for later retry.
+        /// Reports are kept per application in %TEMP%\CrashReporterNET\&lt;application name&gt;.
         /// </summary>
         public void SaveFailedReport()
         {
-            var fileName = $"failed-report-{DateTime.Now.ToString("yyyy-MM-ddTHH_mm_ss")}.xml";
-            var fileInfo = new FileInfo(Path.Combine(tempDirectory.FullName, fileName));
-            if (!tempDirectory.Exists)
-                tempDirectory.Create();
-            new FailedReport { Exception = ExceptionData.FromException(Exception), ScreenShot = ScreenShotBinary }
-                .Save(fileInfo.FullName);
+            SaveFailedReport(null, null, IncludeScreenshot);
         }
+
+        internal void SaveFailedReport(string userEmail, string userMessage, bool includeScreenshot)
+        {
+            if (ApplicationTitle == null || ApplicationVersion == null)
+                CaptureApplicationInfo();
+
+            var directory = FailedReportQueue.GetDirectory();
+            var path = Path.Combine(directory.FullName, FailedReportQueue.CreateFileName(DateTime.UtcNow));
+            new FailedReport
+            {
+                FormatVersion = FailedReport.CurrentFormatVersion,
+                Exception = ExceptionData.FromException(Exception),
+                ScreenShot = ScreenShotBinary,
+                ApplicationTitle = ApplicationTitle,
+                ApplicationVersion = ApplicationVersion,
+                ApplicationAssemblyVersion = ApplicationAssemblyVersion,
+                DeveloperMessage = DeveloperMessage,
+                UserEmail = userEmail,
+                UserMessage = userMessage,
+                IncludeScreenshot = includeScreenshot,
+                CrashDateUtc = CrashDateUtc ?? DateTime.UtcNow
+            }.Save(path);
+        }
+
         /// <summary>
         /// Retries any previously failed report silently. If the first fails, it will stop.
+        /// This method blocks until all reports are sent; use <see cref="RetryFailedReportsAsync"/> to avoid blocking the UI thread.
         /// </summary>
         /// <returns>Whether any report has been sent.</returns>
-        public bool RetryFailedReports() => RetryFailedReports(out var failedReports, out var failedReportsSent);
+        public bool RetryFailedReports() => RetryFailedReports(out _, out _);
+
         /// <summary>
         /// Retries any previously failed report silently. If the first fails, it will stop.
+        /// This method blocks until all reports are sent; use <see cref="RetryFailedReportsAsync"/> to avoid blocking the UI thread.
         /// </summary>
         /// <param name="failedReports">The amount of failed reports found.</param>
         /// <param name="failedReportsSent">The amount of failed reports sent.</param>
         /// <returns>Whether any report has been sent.</returns>
         public bool RetryFailedReports(out int failedReports, out int failedReportsSent)
         {
-            failedReports = 0;
-            failedReportsSent = 0;
-            if (!tempDirectory.Exists) return false;
-
-            List<LoadFailedReportResult> loadedFailedReports = new List<LoadFailedReportResult>();
-            foreach (var fileInfo in tempDirectory.GetFiles("failed-report-*.xml"))
-            {
-                var loadedFailedReport = SelectFailedReport(fileInfo);
-                if (loadedFailedReport.Exception != null)
-                {
-                    loadedFailedReports.Add(loadedFailedReport);
-                }
-            }
-
-            failedReports = loadedFailedReports.Count;
-
-            foreach (var failedReport in loadedFailedReports)
-            {
-                try
-                {
-                    ScreenShotBinary = failedReport.ScreenShot;
-                    if (ScreenShotBinary != null)
-                        File.WriteAllBytes(Path.Combine(tempDirectory.FullName, "screenshot.png"), ScreenShotBinary);
-                    SendSilently(failedReport.Exception);
-                    failedReportsSent++;
-                    failedReport.FileInfo.Delete();
-                }
-                catch (Exception)
-                {
-                    break;
-                }
-            }
-            ScreenShotBinary = null;
-            return failedReportsSent > 0;
+            // RetryFailedReportsAsync runs on the thread pool, so blocking on it cannot deadlock a UI thread.
+            var result = RetryFailedReportsAsync(CancellationToken.None).GetAwaiter().GetResult();
+            failedReports = result.FailedReports;
+            failedReportsSent = result.FailedReportsSent;
+            return result.AnyReportSent;
         }
 
-        private LoadFailedReportResult SelectFailedReport(FileInfo fileInfo)
+        /// <summary>
+        /// Retries any previously failed report of this application in the background, without blocking the calling thread.
+        /// Each report is sent exactly as it was saved (same exception, screenshot, messages and application version).
+        /// Retrying stops at the first report that fails to send, or is not delivered within <see cref="DeliveryTimeout"/>;
+        /// it stays queued for the next attempt.
+        /// Only one retry per application runs at a time, also across processes: if another retry is already in progress,
+        /// this call returns immediately without sending anything, so no report is ever sent twice.
+        /// </summary>
+        /// <param name="cancellationToken">Cancels the retry. Reports that were not sent stay queued.</param>
+        /// <returns>The number of failed reports found and sent.</returns>
+        /// <exception cref="OperationCanceledException">The retry was cancelled.</exception>
+        public Task<FailedReportsRetryResult> RetryFailedReportsAsync(CancellationToken cancellationToken = default)
         {
-            FailedReport failedReport;
+            // All work, including reading the queue, runs on the thread pool: nothing blocks or is posted back to the
+            // calling (UI) thread, so it is safe to call from e.g. Application.OnStartup without awaiting it.
+            return Task.Run(() => RetryFailedReportsCoreAsync(cancellationToken), cancellationToken);
+        }
+
+        private async Task<FailedReportsRetryResult> RetryFailedReportsCoreAsync(CancellationToken cancellationToken)
+        {
+            var directory = FailedReportQueue.GetDirectory();
+            if (!directory.Exists)
+                return new FailedReportsRetryResult(0, 0);
+
+            var queued = new List<KeyValuePair<FileInfo, FailedReport>>();
+            IDisposable queueLock = null;
             try
             {
-                failedReport = FailedReport.Load(fileInfo.FullName);
+                // Exclusive for the whole retry (across processes too), and released by the OS if the process dies.
+                queueLock = FailedReportQueue.TryLock(directory);
+                if (queueLock == null)
+                    return new FailedReportsRetryResult(0, 0);
+
+                foreach (var file in FailedReportQueue.GetFiles(directory))
+                {
+                    var report = LoadFailedReport(file);
+                    if (report != null)
+                        queued.Add(new KeyValuePair<FileInfo, FailedReport>(file, report));
+                }
+            }
+            catch (Exception e) when (e is IOException || e is UnauthorizedAccessException || e is System.Security.SecurityException)
+            {
+                // The queue can't be read right now (e.g. access denied); the reports stay queued for the next attempt.
+                Debug.WriteLine(e);
+                queueLock?.Dispose();
+                return new FailedReportsRetryResult(0, 0);
+            }
+
+            using (queueLock)
+            {
+                var sent = 0;
+                foreach (var entry in queued)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    string reportUrl;
+                    using (var delivery = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken))
+                    {
+                        delivery.CancelAfter(DeliveryTimeout);
+                        try
+                        {
+                            reportUrl = await SendFailedReportAsync(entry.Value, delivery.Token).ConfigureAwait(false);
+                        }
+                        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                        {
+                            throw;
+                        }
+                        catch (Exception)
+                        {
+                            // Delivery failed or timed out: keep this and all later reports for the next attempt.
+                            break;
+                        }
+                    }
+
+                    // The report is delivered: remove it before doing anything optional, so it is never sent twice.
+                    sent++;
+                    TryDelete(entry.Key);
+                    TryOpenReportInBrowser(reportUrl);
+                }
+
+                return new FailedReportsRetryResult(queued.Count, sent);
+            }
+        }
+
+        private static FailedReport LoadFailedReport(FileInfo file)
+        {
+            FailedReport report;
+            try
+            {
+                report = FailedReport.Load(file.FullName);
             }
             catch (Exception e) when (e is SerializationException || e is XmlException)
             {
-                failedReport = null;
+                report = null;
+            }
+            catch (IOException)
+            {
+                // Locked by another process of the same application; try again next time.
+                return null;
             }
 
-            if (failedReport?.Exception == null)
+            if (report?.Exception == null)
             {
-                fileInfo.Delete();
-                return default(LoadFailedReportResult);
+                // Corrupt or empty report: it can never be sent.
+                TryDelete(file);
+                return null;
             }
 
-            return new LoadFailedReportResult
+            return report;
+        }
+
+        private static void TryDelete(FileInfo file)
+        {
+            try
             {
-                Exception = failedReport.Exception.ToException(),
-                ScreenShot = failedReport.ScreenShot,
-                FileInfo = fileInfo
+                file.Delete();
+            }
+            catch (IOException)
+            {
+            }
+            catch (UnauthorizedAccessException)
+            {
+            }
+        }
+
+        /// <summary>
+        /// Sends a saved report as it was captured, without capturing a new screenshot or changing this instance.
+        /// </summary>
+        /// <returns>The Doctor Dump problem page, or null.</returns>
+        private async Task<string> SendFailedReportAsync(FailedReport report, CancellationToken cancellationToken)
+        {
+            var exception = report.Exception.ToException();
+            var isCurrentFormat = report.FormatVersion >= 2;
+            var developerMessage = isCurrentFormat ? report.DeveloperMessage : DeveloperMessage;
+            var includeScreenshot = report.IncludeScreenshot ?? IncludeScreenshot;
+            var screenshot = includeScreenshot && report.ScreenShot?.Length > 0 ? report.ScreenShot : null;
+            var from = !string.IsNullOrEmpty(report.UserEmail) ? report.UserEmail : FromEmail;
+
+            if (AnalyzeWithDoctorDump)
+            {
+                // The saved application identity is reported, not the (possibly upgraded) running application.
+                var service = DrDumpServiceFactory?.Invoke() ?? new DrDumpService(WebProxy);
+                return await service.SendReportAsync(exception, ToEmail,
+                    DoctorDumpSettings?.ApplicationID, developerMessage, from, report.UserMessage, screenshot,
+                    report.CrashDateUtc, report.ApplicationTitle, report.ApplicationAssemblyVersion,
+                    cancellationToken).ConfigureAwait(false);
+            }
+
+            ValidateSmtpSettings();
+            string applicationTitle = report.ApplicationTitle, applicationVersion = report.ApplicationVersion;
+            if (applicationTitle == null || applicationVersion == null)
+            {
+                GetApplicationInfo(out var currentTitle, out var currentVersion);
+                applicationTitle = applicationTitle ?? currentTitle;
+                applicationVersion = applicationVersion ?? currentVersion;
+            }
+
+            var subject = string.IsNullOrEmpty(report.UserEmail)
+                ? $"{applicationTitle} {applicationVersion} Crash Report"
+                : $"{applicationTitle} {applicationVersion} Crash Report by {report.UserEmail}";
+            var html = CreateHtmlReport(applicationTitle, applicationVersion, exception, developerMessage,
+                report.UserMessage, null);
+
+            using (var smtpClient = CreateSmtpClient())
+            using (var message = CreateMailMessage(subject, html, screenshot))
+            {
+                await SendMailAsync(smtpClient, message, cancellationToken).ConfigureAwait(false);
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Sends the message and aborts the delivery when <paramref name="cancellationToken"/> is cancelled,
+        /// including while connecting or waiting for the server.
+        /// </summary>
+        internal static async Task SendMailAsync(SmtpClient smtpClient, MailMessage message, CancellationToken cancellationToken)
+        {
+#if NETFRAMEWORK
+            // SendMailAsync on .NET Framework has no cancellation: use SendAsync and SendAsyncCancel instead.
+            cancellationToken.ThrowIfCancellationRequested();
+            var completion = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            SendCompletedEventHandler completed = null;
+            completed = (sender, e) =>
+            {
+                smtpClient.SendCompleted -= completed;
+                if (e.Cancelled)
+                    completion.TrySetCanceled(cancellationToken);
+                else if (e.Error != null)
+                    completion.TrySetException(e.Error);
+                else
+                    completion.TrySetResult(true);
             };
+            smtpClient.SendCompleted += completed;
+            try
+            {
+                smtpClient.SendAsync(message, null);
+            }
+            catch
+            {
+                smtpClient.SendCompleted -= completed;
+                throw;
+            }
+
+            // Registered after the send started: a cancellation that already happened runs the callback immediately.
+            // The task is cancelled right away, because SendAsyncCancel does not interrupt a send that is still connecting
+            // (e.g. waiting for the server greeting). The caller then disposes the SmtpClient, which aborts the pending
+            // operation and closes its connection. Both calls are ignored if the send completed in the meantime.
+            using (cancellationToken.Register(() =>
+                   {
+                       completion.TrySetCanceled(cancellationToken);
+                       try
+                       {
+                           smtpClient.SendAsyncCancel();
+                       }
+                       catch (ObjectDisposedException)
+                       {
+                       }
+                   }))
+            {
+                await completion.Task.ConfigureAwait(false);
+            }
+#else
+            await smtpClient.SendMailAsync(message, cancellationToken).ConfigureAwait(false);
+#endif
         }
 
         /// <summary>
@@ -238,17 +457,8 @@ namespace CrashReporterDotNET
         private void Send(Exception exception, bool silent)
         {
             Exception = exception;
-
-            var mainAssembly = Assembly.GetEntryAssembly();
-            string appTitle = null;
-            var attributes = mainAssembly.GetCustomAttributes(typeof(AssemblyTitleAttribute), true);
-            if (attributes.Length > 0)
-            {
-                appTitle = ((AssemblyTitleAttribute)attributes[0]).Title;
-            }
-
-            ApplicationTitle = !string.IsNullOrEmpty(appTitle) ? appTitle : mainAssembly.GetName().Name;
-            ApplicationVersion = GetClickOnceVersion() ?? mainAssembly.GetName().Version.ToString();
+            CrashDateUtc = DateTime.UtcNow;
+            CaptureApplicationInfo();
             try
             {
                 if (CaptureScreen)
@@ -263,15 +473,7 @@ namespace CrashReporterDotNET
             
             if (!AnalyzeWithDoctorDump)
             {
-                if (string.IsNullOrEmpty(FromEmail))
-                {
-                    throw new ArgumentNullException(@"FromEmail");
-                }
-                
-                if (string.IsNullOrEmpty(SmtpHost))
-                {
-                    throw new ArgumentNullException("SmtpHost");
-                }
+                ValidateSmtpSettings();
             }
 
             if (!Application.MessageLoop)
@@ -297,6 +499,74 @@ namespace CrashReporterDotNET
                 {
                     new CrashReport(this).ShowDialog();
                 }
+            }
+        }
+
+        private void ValidateSmtpSettings()
+        {
+            if (string.IsNullOrEmpty(FromEmail))
+            {
+                throw new ArgumentNullException(@"FromEmail");
+            }
+
+            if (string.IsNullOrEmpty(SmtpHost))
+            {
+                throw new ArgumentNullException("SmtpHost");
+            }
+        }
+
+        /// <summary>
+        /// Whether the crash dialog should send an anonymous report to Doctor Dump as soon as it opens.
+        /// Never when reports are delivered by SMTP only.
+        /// </summary>
+        internal bool SendAnonymousReportWhenDialogOpens =>
+            AnalyzeWithDoctorDump && DoctorDumpSettings != null && DoctorDumpSettings.SendAnonymousReportSilently;
+
+        private void CaptureApplicationInfo()
+        {
+            GetApplicationInfo(out ApplicationTitle, out ApplicationVersion);
+            ApplicationAssemblyVersion = Assembly.GetEntryAssembly()?.GetName().Version?.ToString();
+        }
+
+        private static void GetApplicationInfo(out string title, out string version)
+        {
+            var mainAssembly = Assembly.GetEntryAssembly();
+            if (mainAssembly == null)
+            {
+                title = FailedReportQueue.GetApplicationName();
+                version = GetClickOnceVersion() ?? string.Empty;
+                return;
+            }
+
+            string appTitle = null;
+            var attributes = mainAssembly.GetCustomAttributes(typeof(AssemblyTitleAttribute), true);
+            if (attributes.Length > 0)
+            {
+                appTitle = ((AssemblyTitleAttribute)attributes[0]).Title;
+            }
+
+            title = !string.IsNullOrEmpty(appTitle) ? appTitle : mainAssembly.GetName().Name;
+            version = GetClickOnceVersion() ?? mainAssembly.GetName().Version.ToString();
+        }
+
+        private void OpenReportInBrowser(string reportUrl)
+        {
+            if (DoctorDumpSettings != null && DoctorDumpSettings.OpenReportInBrowser && !string.IsNullOrEmpty(reportUrl))
+                ReportUrlOpener(reportUrl);
+        }
+
+        /// <summary>
+        /// Opening the problem page is optional: failing to do so (e.g. no default browser) never affects delivery.
+        /// </summary>
+        private void TryOpenReportInBrowser(string reportUrl)
+        {
+            try
+            {
+                OpenReportInBrowser(reportUrl);
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e);
             }
         }
 
@@ -352,23 +622,9 @@ namespace CrashReporterDotNET
                 subject = $"{ApplicationTitle} {ApplicationVersion} Crash Report";
             }
 
-            var smtpClient = new SmtpClient
-            {
-                Host = SmtpHost,
-                Port = Port,
-                EnableSsl = EnableSSL,
-                DeliveryMethod = SmtpDeliveryMethod.Network,
-                UseDefaultCredentials = false,
-                Credentials = new NetworkCredential(UserName, Password)
-            };
-
-            var message = new MailMessage(new MailAddress(FromEmail), new MailAddress(ToEmail))
-                {IsBodyHtml = true, Subject = subject, Body = CreateHtmlReport(userMessage)};
-            
-            if (ScreenShotBinary?.Length > 0 && includeScreenshot)
-            {
-                message.Attachments.Add(new Attachment(new MemoryStream(ScreenShotBinary), "Screenshot.png", "image/png"));
-            }
+            var smtpClient = CreateSmtpClient();
+            var message = CreateMailMessage(subject, CreateHtmlReport(userMessage),
+                includeScreenshot ? ScreenShotBinary : null);
 
             if (smtpClientSendCompleted != null)
             {
@@ -388,11 +644,50 @@ namespace CrashReporterDotNET
             }
         }
 
+        private SmtpClient CreateSmtpClient()
+        {
+            return new SmtpClient
+            {
+                Host = SmtpHost,
+                Port = Port,
+                EnableSsl = EnableSSL,
+                DeliveryMethod = SmtpDeliveryMethod.Network,
+                UseDefaultCredentials = false,
+                Credentials = new NetworkCredential(UserName, Password)
+            };
+        }
+
+        private MailMessage CreateMailMessage(string subject, string htmlReport, byte[] screenshot)
+        {
+            var message = new MailMessage(new MailAddress(FromEmail), new MailAddress(ToEmail))
+                {IsBodyHtml = true, Subject = subject, Body = htmlReport};
+
+            if (screenshot?.Length > 0)
+            {
+                message.Attachments.Add(new Attachment(new MemoryStream(screenshot), "Screenshot.png", "image/png"));
+            }
+
+            return message;
+        }
+
         #endregion
 
         #region HTML Report Generator
 
-        internal string CreateHtmlReport(string userMessage)
+        /// <summary>
+        /// Creates the HTML report of the current crash.
+        /// </summary>
+        /// <param name="userMessage">Comment entered by the user.</param>
+        /// <param name="embedScreenshot">Embed the screenshot as an inline image, for reports saved to a file.
+        /// E-mails attach the screenshot instead, because many mail clients block inline data images.</param>
+        internal string CreateHtmlReport(string userMessage, bool embedScreenshot = false)
+        {
+            return CreateHtmlReport(ApplicationTitle, ApplicationVersion, Exception, DeveloperMessage, userMessage,
+                embedScreenshot ? ScreenShotBinary : null);
+        }
+
+        internal static string CreateHtmlReport(string applicationTitle, string applicationVersion, Exception exception,
+            string developerMessage, string userMessage, byte[] embeddedScreenshot)
         {
             string report =
                 string.Format(
@@ -454,11 +749,11 @@ namespace CrashReporterDotNET
                     <div class=""message"">
                     {4}
                     </div>
-                    </div>", WebUtility.HtmlEncode(ApplicationTitle),
-                    WebUtility.HtmlEncode(ApplicationVersion),
+                    </div>", WebUtility.HtmlEncode(applicationTitle),
+                    WebUtility.HtmlEncode(applicationVersion),
                     WebUtility.HtmlEncode(HelperMethods.GetWindowsVersion()),
                     WebUtility.HtmlEncode(Environment.Version.ToString()),
-                    CreateReport(Exception));
+                    CreateReport(exception));
             if (!String.IsNullOrEmpty(userMessage))
             {
                 report += $@"<br/>
@@ -472,7 +767,7 @@ namespace CrashReporterDotNET
                             </div>";
             }
 
-            if (!String.IsNullOrEmpty(DeveloperMessage.Trim()))
+            if (!String.IsNullOrEmpty(developerMessage?.Trim()))
             {
                 report += $@"<br/>
                             <div class=""content"">
@@ -480,7 +775,20 @@ namespace CrashReporterDotNET
                             <h3>Developer Message</h3>
                             </div>
                             <div class=""message"">
-                            <p>{WebUtility.HtmlEncode(DeveloperMessage.Trim())}</p>
+                            <p>{WebUtility.HtmlEncode(developerMessage.Trim())}</p>
+                            </div>
+                            </div>";
+            }
+
+            if (embeddedScreenshot?.Length > 0)
+            {
+                report += $@"<br/>
+                            <div class=""content"">
+                            <div class=""title"" style=""background-color: #66CCFF;"">
+                            <h3>Screenshot</h3>
+                            </div>
+                            <div class=""message"">
+                            <p><img alt=""Screenshot"" style=""max-width: 100%;"" src=""data:image/png;base64,{Convert.ToBase64String(embeddedScreenshot)}"" /></p>
                             </div>
                             </div>";
             }
@@ -489,7 +797,7 @@ namespace CrashReporterDotNET
             return report;
         }
 
-        private string CreateReport(Exception exception)
+        private static string CreateReport(Exception exception)
         {
             string report = $@"<br/>
                         <div class=""content"">
@@ -522,7 +830,7 @@ namespace CrashReporterDotNET
                         </div>
                         <div class=""message"">
                         <p>{
-                    WebUtility.HtmlEncode(exception.StackTrace ?? "No stack trace").Replace("\r\n", "<br/>")
+                    WebUtility.HtmlEncode(exception.StackTrace ?? "No stack trace").Replace("\r\n", "\n").Replace("\n", "<br/>")
                 }</p>
                         </div>
                         </div>";
@@ -593,21 +901,38 @@ namespace CrashReporterDotNET
             {
                 _doctorDumpService = new DrDumpService(WebProxy);
                 var reportUrl = _doctorDumpService.SendReportSilently(Exception, ToEmail, DoctorDumpSettings?.ApplicationID, DeveloperMessage, from, userMessage, screenshot);
-                if (DoctorDumpSettings != null && DoctorDumpSettings.OpenReportInBrowser)
-                {
-                    if (!string.IsNullOrEmpty(reportUrl))
-                        Process.Start(new ProcessStartInfo(reportUrl) { UseShellExecute = true });
-                }
+                OpenReportInBrowser(reportUrl);
             }
         }
 
         #endregion
-        private struct LoadFailedReportResult
+    }
+
+    /// <summary>
+    /// Result of <see cref="ReportCrash.RetryFailedReportsAsync"/>.
+    /// </summary>
+    public sealed class FailedReportsRetryResult
+    {
+        internal FailedReportsRetryResult(int failedReports, int failedReportsSent)
         {
-            public Exception Exception;
-            public byte[] ScreenShot;
-            public FileInfo FileInfo;
+            FailedReports = failedReports;
+            FailedReportsSent = failedReportsSent;
         }
+
+        /// <summary>
+        /// The amount of failed reports found.
+        /// </summary>
+        public int FailedReports { get; }
+
+        /// <summary>
+        /// The amount of failed reports sent (and removed from the queue).
+        /// </summary>
+        public int FailedReportsSent { get; }
+
+        /// <summary>
+        /// Whether any report has been sent.
+        /// </summary>
+        public bool AnyReportSent => FailedReportsSent > 0;
     }
 
     /// <summary>

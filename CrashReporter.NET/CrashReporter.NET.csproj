@@ -12,7 +12,7 @@
 
   <PropertyGroup>
     <!-- Default version for local builds; CI overrides it from the v* release tag (see .github/workflows/publish.yml). -->
-    <Version>2.0.0</Version>
+    <Version>2.1.0</Version>
     <Company>RBSoft</Company>
     <Product>CrashReporter.NET</Product>
     <AssemblyTitle>CrashReporter.NET</AssemblyTitle>
@@ -20,7 +20,9 @@
     <NeutralLanguage>en</NeutralLanguage>
   </PropertyGroup>
 
-  <PropertyGroup Condition="Exists('CrashReporter.NET.snk')">
+  <!-- Always strong-name signed with the committed key, so the assembly identity is the same on every build machine.
+       Strong naming is an identity, not a security boundary; committing the key is the recommended practice for open-source libraries. -->
+  <PropertyGroup>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>CrashReporter.NET.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
@@ -49,6 +51,10 @@
 
   <ItemGroup>
     <None Include="..\README.md" Pack="true" PackagePath="\" Visible="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="CrashReporter.NET.Tests" PublicKey="0024000004800000940000000602000000240000525341310004000001000100a5924771fe740348c75b56722da9f072a0defa3f9d958ddaf5486e19393d29e97b69fe314fa840c485ebd2ee61802dae80fbd445551214ca4cf06b9a13b89c642071937c3a5e2dc0cf14cf363f0497e8e8e3e91053b2943681fb234757ab7a0ed2e20870bc457d9f40d04c37034646c54e4be3941ec8f3a4da562c1f4fbbbda8" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net48'">

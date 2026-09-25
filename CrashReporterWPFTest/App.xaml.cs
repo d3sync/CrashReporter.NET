@@ -24,7 +24,8 @@ namespace CrashReporterWPFTest
                 DeveloperMessage = "Retry attempt",
                 Silent = true
             };
-            _reportCrash.RetryFailedReports();
+            // Retry reports that could not be sent earlier, in the background so startup is not blocked.
+            _ = _reportCrash.RetryFailedReportsAsync();
         }
 
         private void TaskSchedulerOnUnobservedTaskException(object sender, UnobservedTaskExceptionEventArgs unobservedTaskExceptionEventArgs)

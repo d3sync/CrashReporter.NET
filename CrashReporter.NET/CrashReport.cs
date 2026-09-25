@@ -17,6 +17,10 @@ namespace CrashReporterDotNET
 
         private ProgressDialog _progressDialog;
 
+        private string _from;
+
+        private string _userMessage;
+
         #region Form Events
 
         public CrashReport(ReportCrash reportCrashObject)
@@ -36,8 +40,7 @@ namespace CrashReporterDotNET
                 pictureBoxScreenshot.Show();
             }
 
-            if (_reportCrash.DoctorDumpSettings != null &&
-                _reportCrash.DoctorDumpSettings.SendAnonymousReportSilently)
+            if (_reportCrash.SendAnonymousReportWhenDialogOpens)
                 _reportCrash.SendAnonymousReport(SendRequestCompleted);
 
             if (!_reportCrash.ShowScreenshotTab)
@@ -105,6 +108,9 @@ namespace CrashReporterDotNET
                 }
             }
 
+            _from = from;
+            _userMessage = textBoxUserMessage.Text.Trim();
+
             try
             {
                 _reportCrash.SendReport(checkBoxIncludeScreenshot.Checked, SendRequestCompleted,
@@ -127,7 +133,8 @@ namespace CrashReporterDotNET
 
         private void SaveFileDialogFileOk(object sender, CancelEventArgs e)
         {
-            File.WriteAllText(saveFileDialog.FileName, _reportCrash.CreateHtmlReport(textBoxUserMessage.Text.Trim()));
+            File.WriteAllText(saveFileDialog.FileName,
+                _reportCrash.CreateHtmlReport(textBoxUserMessage.Text.Trim(), checkBoxIncludeScreenshot.Checked));
         }
 
         private void LinkLabelViewLinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
@@ -191,8 +198,17 @@ namespace CrashReporterDotNET
 
         private void ReportFailure(Exception exception)
         {
-            // Save crash report for later retry.
-            _reportCrash.SaveFailedReport();
+            // Save crash report, including what the user entered, for later retry.
+            try
+            {
+                _reportCrash.SaveFailedReport(_from, _userMessage, checkBoxIncludeScreenshot.Checked);
+            }
+            catch (Exception saveException) when (saveException is IOException || saveException is UnauthorizedAccessException)
+            {
+                // The crash reporter itself must not crash; the report just can't be retried later.
+                Debug.WriteLine(saveException);
+            }
+
             _progressDialog?.Close();
             MessageBox.Show(exception.Message, exception.ToString(), MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
